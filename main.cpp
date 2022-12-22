@@ -47,3 +47,16 @@ int main(int argc, char **argv){
 // 	ofs << genome << endl;
 // 	}
 }
+
+// int main(){
+// 	LinearCapR lcr(100);
+
+// 	int n;
+// 	cin >> n;
+// 	vector<Float> vec(n);
+// 	for(int i = 0;i < n;i++) cin >> vec[i];
+// 	for(int i = 0;i < n;i++){
+// 		vector<Float> vec2 = vec;
+// 		cout << lcr.quickselect(vec2, 0, n, i + 1) << endl;
+// 	}
+// }
