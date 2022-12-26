@@ -1,10 +1,11 @@
-#include <iostream>
-#include <string>
-#include <vector>
-
 #include "LinearCapR.hpp"
 #include "FileReader.hpp"
 #include "utils.hpp"
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -25,27 +26,24 @@ int main(int argc, char **argv){
 	vector<string> seq, seq_name;
 	fr.read(input_file, seq, seq_name);
 
-	cout << seq_name << endl;
-	cout << seq << endl;
-
 	// run LinearCapR
-// 	const int s = seq.size();
-// 	LinearCapR lcr(beam_size);
-// 	for(int i = 0; i < s; i++){
-// 		// calc structural profile
-// 		lcr.run(seq[i]);
+	const int s = seq.size();
+	LinearCapR lcr(beam_size);
+	for(int i = 0; i < s; i++){
+		// calc structural profile
+		lcr.run(seq[i]);
 
-// 		// output profile
-// 		cout << ">" << seq_name[i] << endl;
-		
-// ofstream ofs(out_file);
-// 	if(!ofs){
-// 		cout << "cannot open output file" << endl;
-// 		exit(1);
-// 	}
-// 	ofs << ">genome" << endl;
-// 	ofs << genome << endl;
-// 	}
+		// output profile
+		ofstream ofs(output_file, ios::out | ios::app);
+		if(!ofs){
+			cout << "Error: cannot open output file: " << output_file << endl;
+			return 1;
+		}
+		lcr.output(ofs, seq_name[i]);
+		ofs.close();
+
+		lcr.clear();
+	}
 }
 
 // int main(){
