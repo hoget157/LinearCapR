@@ -4,16 +4,7 @@ extracted from ViennaRNA v2.5.1
 
 #pragma once
 
-const int BP_pair[5][5]=
-/* @  A  C  G  U*/
-{{ 0, 0, 0, 0, 0},
- { 0, 0, 0, 0, 5},
- { 0, 0, 0, 1, 0},
- { 0, 0, 2, 0, 3},
- { 0, 6, 0, 4, 0}};
-
-/* rtype[pair[i][j]]:=pair[j][i] */
-const int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
+#include "miscs.hpp"
 
 // constants
 
@@ -21,9 +12,6 @@ const int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 #define GASCONST 1.98717  /* in [cal/K] */
 /** 0 deg Celsius in Kelvin */
 #define K0  273.15
-/** Infinity as used in minimization routines */
-#define INF 10000000 /* (INT_MAX/10) */
-
 /** The number of distinguishable base pairs */
 #define NBPAIRS 7
 /** The minimum loop length */
@@ -44,6 +32,7 @@ const int TerminalAU37 = 50;
 
 // stack
 const int stack37[NBPAIRS+1][NBPAIRS+1] =
+/*          CG     GC     GU     UG     AU     UA     NN*/
 {{   INF,   INF,   INF,   INF,   INF,   INF,   INF,   INF}
 ,{   INF,  -240,  -330,  -210,  -140,  -210,  -210,  -140}
 ,{   INF,  -330,  -340,  -250,  -150,  -220,  -240,  -150}

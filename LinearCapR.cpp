@@ -22,7 +22,6 @@ int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, co
 
 // returns k-th(0-indexed) smalled score in [lower, upper)
 Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
-	DUMP(scores, lower, upper, k);
 	if(upper - lower == 1) return scores[lower];
 	int split = quickselect_partition(scores, lower, upper);
 	int length = split - lower + 1;
@@ -34,9 +33,11 @@ Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int 
 
 // prune top-k states
 Float LinearCapR::prune(unordered_map<int, Float> &states) const{
+	if((int)states.size() <= beam_size) return -INF;
+	
 	// extract scores
 	vector<Float> scores;
-	for(auto [i, score] : states){
+	for(const auto [i, score] : states){
 		// bias
 		Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
         scores.push_back(new_score);
@@ -136,7 +137,7 @@ void LinearCapR::initialize(const string &seq){
 	}
 
 	// prepare DP tables
-	alpha_O.resize(seq_n + 1);
+	alpha_O.resize(seq_n + 1, -INF);
 	alpha_S.resize(seq_n + 1);
 	alpha_SE.resize(seq_n + 1);
 	alpha_M.resize(seq_n + 1);
@@ -144,7 +145,7 @@ void LinearCapR::initialize(const string &seq){
 	alpha_M1.resize(seq_n + 1);
 	alpha_M2.resize(seq_n + 1);
 
-	beta_O.resize(seq_n + 1);
+	beta_O.resize(seq_n + 1, -INF);
 	beta_S.resize(seq_n + 1);
 	beta_SE.resize(seq_n + 1);
 	beta_M.resize(seq_n + 1);
@@ -163,7 +164,28 @@ void LinearCapR::initialize(const string &seq){
 
 // calc inside variables
 void LinearCapR::calc_inside(){
+	alpha_O[0] = 0;
 
+	for(int j = 0; j <= seq_n; j++){
+		// S
+		// prune(alpha_S[j]);
+		// for(const auto &[] : alpha_S[j]){
+
+		// }
+
+		// M2
+
+		// MB
+
+
+		// M1
+
+		// M
+
+		// SE
+
+		// O
+	}
 }
 
 
@@ -248,7 +270,7 @@ Float LinearCapR::energy_loop(int i, int j, int p, int q) const{
 }
 
 
-// calc energy where bases in [i, j] are unpaired
+// calc energy where bases in multi [i, j] are unpaired
 Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
 	return 0;
 }
@@ -288,4 +310,10 @@ Float LinearCapR::energy_external(const int i, const int j) const{
 	if(type > 2) energy += TerminalAU37;
 
 	return energy;
+}
+
+
+// calc energy where bases in external [i, j] are unpaired
+Float LinearCapR::energy_external_unpaired(const int i, const int j) const{
+	return 0;
 }

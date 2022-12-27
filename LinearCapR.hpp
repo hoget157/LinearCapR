@@ -1,7 +1,9 @@
 #pragma once
 
 #include "types.hpp"
+#include "miscs.hpp"
 
+#include <cmath>
 #include <string>
 
 class LinearCapR{
@@ -10,7 +12,7 @@ public:
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
-private:
+// private:
 	const int beam_size;
 
 	// integerized sequence
@@ -40,6 +42,7 @@ private:
 	Float energy_hairpin(const int, const int) const;
 	Float energy_loop(const int, const int, const int, const int) const;
 	Float energy_external(const int, const int) const;
+	Float energy_external_unpaired(const int, const int) const;
 	Float energy_multi_unpaired(const int, const int) const;
 	Float energy_multi_closing(const int, const int) const;
 	Float energy_multi_bif(const int, const int) const;
@@ -48,7 +51,17 @@ private:
 		if(base == 'A' || base == 'a') return 1;
 		if(base == 'C' || base == 'c') return 2;
 		if(base == 'G' || base == 'g') return 3;
-		if(base == 'T' || base == 't') return 4;
+		if(base == 'T' || base == 't' || base == 'U' || base == 'u') return 4;
 		return 0;
+	}
+
+	inline Float logsumexp(const Float x, const Float y) const{
+		if(x == -INF) return y;
+		if(y == -INF) return x;
+		return (x > y ? x + log(exp(y - x) + 1) : y + log(exp(x - y) + 1));
+	}
+
+	inline Float logsumexp_equal(Float &x, const Float y) const{
+		return x = logsumexp(x, y);
 	}
 };
