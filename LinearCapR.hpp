@@ -38,8 +38,11 @@ private:
 
 	// calc each energy
 	Float energy_hairpin(const int, const int) const;
-	Float energy_dangle(const int, const int) const;
 	Float energy_loop(const int, const int, const int, const int) const;
+	Float energy_external(const int, const int) const;
+	Float energy_multi_unpaired(const int, const int) const;
+	Float energy_multi_closing(const int, const int) const;
+	Float energy_multi_bif(const int, const int) const;
 
 	inline int base_to_num(const char base) const{
 		if(base == 'A' || base == 'a') return 1;

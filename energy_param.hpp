@@ -4,6 +4,17 @@ extracted from ViennaRNA v2.5.1
 
 #pragma once
 
+const int BP_pair[5][5]=
+/* @  A  C  G  U*/
+{{ 0, 0, 0, 0, 0},
+ { 0, 0, 0, 0, 5},
+ { 0, 0, 0, 1, 0},
+ { 0, 0, 2, 0, 3},
+ { 0, 6, 0, 4, 0}};
+
+/* rtype[pair[i][j]]:=pair[j][i] */
+const int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
+
 // constants
 
 /** The gas constant */
@@ -21,7 +32,7 @@ extracted from ViennaRNA v2.5.1
 #define MAXLOOP 30
 
 const double temperature = 37;
-const double kT = (temperature + K0) * GASCONST;
+const double kT = (temperature + K0) * GASCONST / 10.;
 
 const double lxc37 = 107.856;
 const int ML_intern37 = -90;

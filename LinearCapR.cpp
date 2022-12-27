@@ -4,6 +4,7 @@
 #include "intloops.hpp"
 
 #include <fstream>
+#include <cmath>
 
 // partite [lower, upper) and small scores are in [lower, split)
 int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
@@ -129,9 +130,9 @@ void LinearCapR::run(const string &seq){
 void LinearCapR::initialize(const string &seq){
 	// integerize sequence
 	seq_n = seq.length();
-	seq_int.resize(seq_n + 1);
+	seq_int.resize(seq_n);
 	for(int i = 0; i < seq_n; i++){
-		seq_int[i + 1] = base_to_num(seq[i]);
+		seq_int[i] = base_to_num(seq[i]);
 	}
 
 	// prepare DP tables
@@ -180,10 +181,111 @@ void LinearCapR::calc_profile(){
 
 // calc energy of hairpin loop [i, j]
 Float LinearCapR::energy_hairpin(int i, int j) const{
-	// int type = BP_pair[seq_int[i]][seq_int[j]];
-	// int d = j - i - 1;
+	int type = BP_pair[seq_int[i]][seq_int[j]];
+	int d = j - i - 1;
 
-	// // initiation
-	// double energy = (d <= MAXLOOP ? hairpin37[]);
+	// initiation
+	Float energy = (d <= MAXLOOP ? hairpin37[d] : hairpin37[30] + lxc37 * log(d / 30.));
+	
+	if(d != 3){
+		energy += mismatchH37[type][seq_int[i + 1]][seq_int[j - 1]];
+	}else if(type > 2){
+		// TODO: why add terminal penalty?
+		energy += TerminalAU37;
+	}
+	return energy;
+}
+
+
+// calc energy of loop [i, p, q, j]
+Float LinearCapR::energy_loop(int i, int j, int p, int q) const{
+	int type1 = BP_pair[seq_int[i]][seq_int[j]], type2 = BP_pair[seq_int[q]][seq_int[p]];;
+	int d1 = p - i - 1, d2 = j - q - 1;
+	int d = d1 + d2, dmin = min(d1, d2), dmax = max(d1, d2);
+	int si = seq_int[i + 1];
+	int sj = seq_int[j - 1];
+	int sp = seq_int[p - 1];
+	int sq = seq_int[q + 1];
+
+	if(dmax == 0){
+		// stack
+		return stack37[type1][type2];
+	}
+
+	if(dmin == 0){
+		// bulge
+		Float energy = (d <= MAXLOOP ? bulge37[d] : bulge37[30] + lxc37 * log(d / 30.));
+
+		if(dmax == 1) energy += stack37[type1][type2];
+		else{
+			if(type1 > 2) energy += TerminalAU37;
+			if(type2 > 2) energy += TerminalAU37;
+		}
+		return energy;
+	}
+
+	// internal
+	// specieal internal loops
+	if(d1 == 1 && d2 == 1) return int11_37[type1][type2][si][sj];
+	if(d1 == 1 && d2 == 2) return int21_37[type1][type2][si][sq][sj];
+	if(d1 == 2 && d2 == 1) return int21_37[type2][type1][sq][si][sp];
+	if(d1 == 2 && d2 == 2) return int22_37[type1][type2][si][sp][sq][sj];
+
+	// generic internal loop
+	Float energy =  (d <= MAXLOOP ? internal_loop37[d] : internal_loop37[30] + lxc37 * log(d / 30.));
+	energy += min(MAX_NINIO, ninio37 * (dmax - dmin));
+	
+	// mismatch: different for sizes
+	if(dmin == 1){ // 1xn
+		energy += mismatch1nI37[type1][si][sj] + mismatch1nI37[type2][sq][sp];
+	}else if(dmin == 2 && dmax == 3){ // 2x3
+		energy += mismatch23I37[type1][si][sj] + mismatch23I37[type2][sq][sp];
+	}else{ // others
+		energy += mismatchI37[type1][si][sj] + mismatchI37[type2][sq][sp];
+	}
+
+	return energy;
+}
+
+
+// calc energy where bases in [i, j] are unpaired
+Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
 	return 0;
+}
+
+
+// calc energy of multiloop [i, j]
+Float LinearCapR::energy_multi_closing(const int i, const int j) const{
+	// we look clockwise, so i, j are swapped
+	return energy_multi_bif(j, i) + ML_closing37;
+}
+
+
+// calc energy of bifurcation [i, j] in a multiloop
+Float LinearCapR::energy_multi_bif(const int i, const int j) const{
+	int type = BP_pair[seq_int[i]][seq_int[j]];
+	Float energy = ML_intern37;
+
+	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchM37[type][seq_int[i - 1]][seq_int[j + 1]];
+	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
+	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
+
+	if(type > 2) energy += TerminalAU37;
+
+	return energy;
+}
+
+
+// calc energy of external loop [i, j]
+Float LinearCapR::energy_external(const int i, const int j) const{
+	int type = BP_pair[seq_int[i]][seq_int[j]];
+	Float energy = 0;
+
+	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchExt37[type][seq_int[i - 1]][seq_int[j + 1]];
+	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
+	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
+
+	if(type > 2) energy += TerminalAU37;
+
+	return energy;
 }
