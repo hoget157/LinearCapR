@@ -58,7 +58,7 @@ public:
 	inline Float logsumexp(const Float x, const Float y) const{
 		if(x == -INF) return y;
 		if(y == -INF) return x;
-		return (x > y ? x + log(exp(y - x) + 1) : y + log(exp(x - y) + 1));
+		return (x > y ? x + log1p(exp(y - x)) : y + log1p(exp(x - y)));
 	}
 
 	inline Float logsumexp_equal(Float &x, const Float y) const{

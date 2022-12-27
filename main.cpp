@@ -47,8 +47,5 @@ using namespace std;
 // }
 
 int main(){
-	LinearCapR lcr(100);
-	lcr.run("ACGCUGUCUGUACUUGUAUCAGUACACUGACGAGUCCCUAAAGGACGAAACAGCGC");
-	cout << lcr.energy_hairpin(0, 4) << endl;
-	cout << lcr.energy_loop(2, 10, 3, 9) << endl;
+	
 }
