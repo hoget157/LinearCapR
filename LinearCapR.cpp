@@ -1,10 +1,12 @@
 #include "LinearCapR.hpp"
 #include "utils.hpp"
-#include "energy_param.hpp"
-#include "intloops.hpp"
+// #include "energy_param.hpp"
+#include "legacy_energy_param.hpp"
 
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+
 
 // partite [lower, upper) and small scores are in [lower, split)
 int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
@@ -176,7 +178,7 @@ void LinearCapR::calc_inside(){
 			}
 			
 			// M2 -> S
-			for(int n = 0; n <= MAXLOOP; n++){
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/; n++){
 				if(j + n >= seq_n) continue;
 				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
 			}
@@ -214,7 +216,7 @@ void LinearCapR::calc_inside(){
 			update_sum(alpha_M1, i, j, score);
 
 			// M -> MB
-			for(int n = 0; n <= MAXLOOP; n++){
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/; n++){
 				if(i - n < 0) continue;
 				update_sum(alpha_M, i - n, j, score);
 			}
@@ -347,8 +349,16 @@ Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
 
 // calc energy of multiloop [i, j]
 Float LinearCapR::energy_multi_closing(const int i, const int j) const{
+#ifdef LEGACY_ENERGY
+	int type = BP_pair[seq_int[j]][seq_int[i]];
+	Float energy = ML_intern37 + ML_closing37;
+	energy += dangle5_37[type][seq_int[j - 1]];
+	energy += dangle3_37[type][seq_int[i + 1]];
+	return energy;
+#else
 	// we look clockwise, so i, j are swapped
 	return energy_multi_bif(j, i) + ML_closing37;
+#endif
 }
 
 
@@ -357,11 +367,17 @@ Float LinearCapR::energy_multi_bif(const int i, const int j) const{
 	int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = ML_intern37;
 
+#ifdef LEGACY_ENERGY
+	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
+	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
+	if(j == seq_n && type > 2) energy += TerminalAU37;
+#else
 	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchM37[type][seq_int[i - 1]][seq_int[j + 1]];
 	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-
+	
 	if(type > 2) energy += TerminalAU37;
+#endif
 
 	return energy;
 }
@@ -372,11 +388,17 @@ Float LinearCapR::energy_external(const int i, const int j) const{
 	int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = 0;
 
+#ifdef LEGACY_ENERGY
+	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
+	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
+	if(j == seq_n && type > 2) energy += TerminalAU37;
+#else
 	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchExt37[type][seq_int[i - 1]][seq_int[j + 1]];
 	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
 
 	if(type > 2) energy += TerminalAU37;
+#endif
 
 	return energy;
 }

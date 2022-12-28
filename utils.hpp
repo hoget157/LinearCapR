@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types.hpp"
-#include "energy_param.hpp"
 
 #include <iostream>
 #include <vector>

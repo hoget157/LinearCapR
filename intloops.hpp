@@ -1,6 +1,6 @@
 #pragma once
 
-#include "energy_param.hpp"
+#include "miscs.hpp"
 
 const int int11_37[NBPAIRS+1][NBPAIRS+1][5][5] =
 {{{{   INF,   INF,   INF,   INF,   INF}
