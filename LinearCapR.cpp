@@ -251,7 +251,7 @@ void LinearCapR::calc_inside(){
 			}
 		}
 
-		// O
+		// O -> O
 		if(j + 1 < seq_n){
 			update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / kT);
 		}
@@ -349,16 +349,17 @@ Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
 
 // calc energy of multiloop [i, j]
 Float LinearCapR::energy_multi_closing(const int i, const int j) const{
-#ifdef LEGACY_ENERGY
-	int type = BP_pair[seq_int[j]][seq_int[i]];
-	Float energy = ML_intern37 + ML_closing37;
-	energy += dangle5_37[type][seq_int[j - 1]];
-	energy += dangle3_37[type][seq_int[i + 1]];
-	return energy;
-#else
+// #ifdef LEGACY_ENERGY
+// 	int type = BP_pair[seq_int[j]][seq_int[i]];
+// 	Float energy = ML_intern37 + ML_closing37;
+// 	energy += dangle5_37[type][seq_int[j - 1]];
+// 	energy += dangle3_37[type][seq_int[i + 1]];
+// 	if(type > 2) energy += TerminalAU37;
+// 	return energy;
+// #else
 	// we look clockwise, so i, j are swapped
 	return energy_multi_bif(j, i) + ML_closing37;
-#endif
+// #endif
 }
 
 
@@ -370,14 +371,13 @@ Float LinearCapR::energy_multi_bif(const int i, const int j) const{
 #ifdef LEGACY_ENERGY
 	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-	if(j == seq_n && type > 2) energy += TerminalAU37;
 #else
 	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchM37[type][seq_int[i - 1]][seq_int[j + 1]];
 	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-	
-	if(type > 2) energy += TerminalAU37;
 #endif
+
+	if(type > 2) energy += TerminalAU37;
 
 	return energy;
 }
@@ -391,14 +391,13 @@ Float LinearCapR::energy_external(const int i, const int j) const{
 #ifdef LEGACY_ENERGY
 	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-	if(j == seq_n && type > 2) energy += TerminalAU37;
 #else
 	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchExt37[type][seq_int[i - 1]][seq_int[j + 1]];
 	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
 	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
+#endif
 
 	if(type > 2) energy += TerminalAU37;
-#endif
 
 	return energy;
 }
