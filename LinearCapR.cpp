@@ -33,7 +33,7 @@ Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int 
 
 // prune top-k states
 Float LinearCapR::prune(unordered_map<int, Float> &states) const{
-	if((int)states.size() <= beam_size) return -INF;
+	if(beam_size == 0 || (int)states.size() <= beam_size) return -INF;
 	
 	// extract scores
 	vector<Float> scores;
@@ -137,21 +137,21 @@ void LinearCapR::initialize(const string &seq){
 	}
 
 	// prepare DP tables
-	alpha_O.resize(seq_n + 1, -INF);
-	alpha_S.resize(seq_n + 1);
-	alpha_SE.resize(seq_n + 1);
-	alpha_M.resize(seq_n + 1);
-	alpha_MB.resize(seq_n + 1);
-	alpha_M1.resize(seq_n + 1);
-	alpha_M2.resize(seq_n + 1);
+	alpha_O.resize(seq_n, -INF);
+	alpha_S.resize(seq_n);
+	alpha_SE.resize(seq_n);
+	alpha_M.resize(seq_n);
+	alpha_MB.resize(seq_n);
+	alpha_M1.resize(seq_n);
+	alpha_M2.resize(seq_n);
 
-	beta_O.resize(seq_n + 1, -INF);
-	beta_S.resize(seq_n + 1);
-	beta_SE.resize(seq_n + 1);
-	beta_M.resize(seq_n + 1);
-	beta_MB.resize(seq_n + 1);
-	beta_M1.resize(seq_n + 1);
-	beta_M2.resize(seq_n + 1);
+	beta_O.resize(seq_n, -INF);
+	beta_S.resize(seq_n);
+	beta_SE.resize(seq_n);
+	beta_M.resize(seq_n);
+	beta_MB.resize(seq_n);
+	beta_M1.resize(seq_n);
+	beta_M2.resize(seq_n);
 
 	prob_B.resize(seq_n);
 	prob_E.resize(seq_n);
@@ -166,26 +166,95 @@ void LinearCapR::initialize(const string &seq){
 void LinearCapR::calc_inside(){
 	alpha_O[0] = 0;
 
-	for(int j = 0; j <= seq_n; j++){
+	for(int j = 0; j < seq_n; j++){
 		// S
-		// prune(alpha_S[j]);
-		// for(const auto &[] : alpha_S[j]){
+		prune(alpha_S[j]);
+		for(const auto &[i, score] : alpha_S[j]){
+			// S -> S
+			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
+				update_sum(alpha_S, i - 1, j + 1, score - energy_loop(i - 1, j + 1, i, j) / kT);
+			}
+			
+			// M2 -> S
+			for(int n = 0; n <= MAXLOOP; n++){
+				if(j + n >= seq_n) continue;
+				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
+			}
 
-		// }
+			// SE -> S: p..i..j..q
+			for(int p = i; i - p <= MAXLOOP; p--){
+				for(int q = j; (q - j) + (i - p) <= MAXLOOP; q++){
+					if((p == i && q == j) || p - 1 < 0 || q + 1 >= seq_n || !can_pair(p - 1, q + 1)) continue;
+					update_sum(alpha_SE, p, q, score - energy_loop(p - 1, q + 1, i, j) / kT);
+				}
+			}
+
+			// O -> O + S
+			update_sum(alpha_O, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + score - energy_external(i, j) / kT);
+		}
 
 		// M2
+		prune(alpha_M2[j]);
+		for(const auto &[i, score] : alpha_M2[j]){
+			// M1 -> M2
+			update_sum(alpha_M1, i, j, score);
+
+			// MB -> M1 + M2
+			if(i - 1 >= 0){
+				for(const auto &[k, score_m1] : alpha_M1[i - 1]){
+					update_sum(alpha_MB, k, j, score_m1 + score);
+				}
+			}
+		}
 
 		// MB
+		prune(alpha_MB[j]);
+		for(const auto &[i, score] : alpha_MB[j]){
+			// M1 -> MB
+			update_sum(alpha_M1, i, j, score);
 
+			// M -> MB
+			for(int n = 0; n <= MAXLOOP; n++){
+				if(i - n < 0) continue;
+				update_sum(alpha_M, i - n, j, score);
+			}
+		}
 
 		// M1
+		prune(alpha_M1[j]);
 
 		// M
+		prune(alpha_M[j]);
+		for(const auto &[i, score] : alpha_M[j]){
+			// SE -> M
+			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
+				update_sum(alpha_SE, i, j, score - energy_multi_closing(i - 1, j + 1) / kT);
+			}
+		}
+
+		// SE -> (Hairpin)
+		for(int n = TURN; n <= MAXLOOP; n++){
+			int i = j - n + 1;
+			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
+				update_sum(alpha_SE, i, j, -energy_hairpin(i - 1, j + 1) / kT);
+			}
+		}
 
 		// SE
+		prune(alpha_SE[j]);
+		for(const auto &[i, score] : alpha_SE[j]){
+			// S -> SE
+			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
+				update_sum(alpha_S, i - 1, j + 1, score);
+			}
+		}
 
 		// O
+		if(j + 1 < seq_n){
+			update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / kT);
+		}
 	}
+	DUMP_TABLES();
 }
 
 

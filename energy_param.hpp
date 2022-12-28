@@ -12,8 +12,6 @@ extracted from ViennaRNA v2.5.1
 #define GASCONST 1.98717  /* in [cal/K] */
 /** 0 deg Celsius in Kelvin */
 #define K0  273.15
-/** The number of distinguishable base pairs */
-#define NBPAIRS 7
 /** The minimum loop length */
 #define TURN 3
 /** The maximum loop length */

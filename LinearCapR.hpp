@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include "miscs.hpp"
+#include "utils.hpp"
 
 #include <cmath>
 #include <string>
@@ -19,7 +20,7 @@ public:
 	int seq_n;
 	vector<int> seq_int;
 
-	// DP tables
+	// DP tables: log of sum of Boltzmann factors in interval [i, j]
 	vector<Float> alpha_O, beta_O;
 	Table alpha_S, alpha_SE, alpha_M, alpha_MB, alpha_M1, alpha_M2;
 	Table beta_S, beta_SE, beta_M, beta_MB, beta_M1, beta_M2;
@@ -55,13 +56,40 @@ public:
 		return 0;
 	}
 
+	// returns whether base (i, j) can form pair 
+	inline bool can_pair(const int i, const int j) const{
+		return (BP_pair[seq_int[i]][seq_int[j]] > 0);
+	}
+
+	// returns z; e^z = e^x + e^y
 	inline Float logsumexp(const Float x, const Float y) const{
 		if(x == -INF) return y;
 		if(y == -INF) return x;
 		return (x > y ? x + log1p(exp(y - x)) : y + log1p(exp(x - y)));
 	}
 
-	inline Float logsumexp_equal(Float &x, const Float y) const{
-		return x = logsumexp(x, y);
+	// t[i,j] += score
+	inline Float update_sum(Table &t, const int i, const int j, const Float score){
+		return t[j][i] = (t[j].count(i) ? logsumexp(t[j][i], score) : score);
+	}
+
+	// v[i] += score
+	inline Float update_sum(vector<Float> &v, const int i, const Float score){
+		return v[i] = logsumexp(v[i], score);
+	}
+
+	// inline Float logsumexp_equal(Float &x, const Float y) const{
+	// 	return x = logsumexp(x, y);
+	// }
+
+
+	inline void DUMP_TABLES() const{
+		DUMP("O", alpha_O);
+		DUMP("S", alpha_S);
+		DUMP("SE", alpha_SE);
+		DUMP("M", alpha_M);
+		DUMP("MB", alpha_MB);
+		DUMP("M1", alpha_M1);
+		DUMP("M2", alpha_M2);
 	}
 };

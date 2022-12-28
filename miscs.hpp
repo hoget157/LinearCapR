@@ -1,5 +1,8 @@
 #pragma once
 
+/** The number of distinguishable base pairs */
+#define NBPAIRS 7
+
 const int BP_pair[5][5]=
 /* @  A  C  G  U*/
 {{ 0, 0, 0, 0, 0},
