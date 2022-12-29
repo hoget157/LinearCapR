@@ -171,7 +171,7 @@ void LinearCapR::calc_inside(){
 	for(int j = 0; j < seq_n; j++){
 		// S
 		prune(alpha_S[j]);
-		for(const auto &[i, score] : alpha_S[j]){
+		for(const auto [i, score] : alpha_S[j]){
 			// S -> S
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
 				update_sum(alpha_S, i - 1, j + 1, score - energy_loop(i - 1, j + 1, i, j) / kT);
@@ -197,13 +197,13 @@ void LinearCapR::calc_inside(){
 
 		// M2
 		prune(alpha_M2[j]);
-		for(const auto &[i, score] : alpha_M2[j]){
+		for(const auto [i, score] : alpha_M2[j]){
 			// M1 -> M2
 			update_sum(alpha_M1, i, j, score);
 
 			// MB -> M1 + M2
 			if(i - 1 >= 0){
-				for(const auto &[k, score_m1] : alpha_M1[i - 1]){
+				for(const auto [k, score_m1] : alpha_M1[i - 1]){
 					update_sum(alpha_MB, k, j, score_m1 + score);
 				}
 			}
@@ -211,7 +211,7 @@ void LinearCapR::calc_inside(){
 
 		// MB
 		prune(alpha_MB[j]);
-		for(const auto &[i, score] : alpha_MB[j]){
+		for(const auto [i, score] : alpha_MB[j]){
 			// M1 -> MB
 			update_sum(alpha_M1, i, j, score);
 
@@ -227,7 +227,7 @@ void LinearCapR::calc_inside(){
 
 		// M
 		prune(alpha_M[j]);
-		for(const auto &[i, score] : alpha_M[j]){
+		for(const auto [i, score] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
 				update_sum(alpha_SE, i, j, score - energy_multi_closing(i - 1, j + 1) / kT);
@@ -244,7 +244,7 @@ void LinearCapR::calc_inside(){
 
 		// SE
 		prune(alpha_SE[j]);
-		for(const auto &[i, score] : alpha_SE[j]){
+		for(const auto [i, score] : alpha_SE[j]){
 			// S -> SE
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
 				update_sum(alpha_S, i - 1, j + 1, score);
@@ -262,7 +262,30 @@ void LinearCapR::calc_inside(){
 
 // calc outside variables
 void LinearCapR::calc_outside(){
+	beta_O[seq_n - 1] = 0;
 
+	for(int j = seq_n - 1; j >= 0; j--){
+		// O
+		if(j + 1 < seq_n){
+			update_sum(beta_O, j, beta_O[j + 1] - energy_external_unpaired(j + 1, j + 1) / kT);
+		}
+		for(const auto [i, score] : alpha_S[j]){
+			if(i - 1 >= 0){
+				update_sum(beta_O, i - 1, score + beta_O[j] - energy_external(i, j) / kT);
+			}
+		}
+
+		// SE
+		for(const auto [i, score] : alpha_SE[]){
+			update_sum(beta_SE, i, j, )
+			
+		}
+		// M
+		// M1
+		// MB
+		// M2
+		// S
+	}
 }
 
 
@@ -349,17 +372,8 @@ Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
 
 // calc energy of multiloop [i, j]
 Float LinearCapR::energy_multi_closing(const int i, const int j) const{
-// #ifdef LEGACY_ENERGY
-// 	int type = BP_pair[seq_int[j]][seq_int[i]];
-// 	Float energy = ML_intern37 + ML_closing37;
-// 	energy += dangle5_37[type][seq_int[j - 1]];
-// 	energy += dangle3_37[type][seq_int[i + 1]];
-// 	if(type > 2) energy += TerminalAU37;
-// 	return energy;
-// #else
 	// we look clockwise, so i, j are swapped
 	return energy_multi_bif(j, i) + ML_closing37;
-// #endif
 }
 
 
