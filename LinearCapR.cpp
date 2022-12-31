@@ -276,22 +276,70 @@ void LinearCapR::calc_outside(){
 		}
 
 		// SE
-		for(const auto [i, score] : alpha_SE[]){
-			update_sum(beta_SE, i, j, )
+		for(const auto [i, score] : beta_SE[j]){
+			// SE -> S
+			for(int p = i; p - i <= MAXLOOP; p++){
+				for(int q = j; (j - q) + (p - i) <= MAXLOOP && q - p - 1 >= TURN; q--){
+					if((p == i && q == j) || !can_pair(p, q)) continue;
+					update_sum(beta_S, p, q, score - energy_loop(i - 1, j + 1, p, q) / kT);
+				}
+			}
 			
+			// SE -> M
+			update_sum(beta_M, i, j, score - energy_multi_closing(i - 1, j + 1) / kT);
 		}
+
 		// M
+		for(const auto [i, score] : beta_M[j]){
+			// M -> MB
+			for(int n = 0; n <= MAXLOOP; n++){
+				if(j - (i + n) - 1 >= TURN){
+					update_sum(beta_MB, i + n, j, score);
+				}				
+			}
+		}
+
 		// M1
+		for(const auto [i, score] : beta_M1[j]){
+			// M1 -> M2
+			update_sum(beta_M2, i, j, score);
+		}
+
 		// MB
+		for(const auto [i, score] : beta_MB[j]){
+			// MB -> M1 + M2
+
+		}
+
 		// M2
+		for(const auto [i, score] : beta_M2[j]){
+			// M2 -> S
+			for(int n = 0; n <= MAXLOOP; n++){
+				if(j - n - i - 1 >= TURN && can_pair(i, j - n)){
+					update_sum(beta_S, i, j - n, score - (energy_multi_bif(i, j - n) + energy_multi_unpaired(j - n + 1, j)) / kT);
+				}
+			}
+		}
+
 		// S
+		for(const auto [i, score] : beta_S[j]){
+			// S -> S
+			if((j - 1) - (i + 1) - 1 >= TURN && can_pair(i + 1, j - 1)){
+				update_sum(beta_S, i + 1, j - 1, score - energy_loop(i, j, i + 1, j - 1) / kT);
+			}
+
+			// S -> SE
+			if((j - 1) - (i + 1) - 1 >= TURN){
+				update_sum(beta_SE, i + 1, j - 1, score);
+			}
+		}
 	}
 }
 
 
 // calc structural profile
 void LinearCapR::calc_profile(){
-
+	
 }
 
 
