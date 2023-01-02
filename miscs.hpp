@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils.hpp"
+
 #include <cmath>
 
 /** The number of distinguishable base pairs */
@@ -41,8 +43,9 @@ inline Float logsumexp(const Float x, const Float y){
 }
 
 
-// t[i,j] += score
+// t[i, j] += score
 inline Float update_sum(Table &t, const int i, const int j, const Float score){
+	// DUMP("update", i, j, score);
 	return t[j][i] = (t[j].count(i) ? logsumexp(t[j][i], score) : score);
 }
 
@@ -51,6 +54,13 @@ inline Float update_sum(Table &t, const int i, const int j, const Float score){
 inline Float update_sum(vector<Float> &v, const int i, const Float score){
 	return v[i] = logsumexp(v[i], score);
 }
+
+
+// returns t[i, j] if exists, else default value
+inline Float get_value(const Table &t, const int i, const int j, const Float default_value = -INF){
+	return (t[j].count(i) ? t[j].at(i) : default_value);
+}
+
 
 	// inline Float logsumexp_equal(Float &x, const Float y) const{
 	// 	return x = logsumexp(x, y);

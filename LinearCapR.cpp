@@ -178,8 +178,7 @@ void LinearCapR::calc_inside(){
 			}
 			
 			// M2 -> S
-			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/; n++){
-				if(j + n >= seq_n) continue;
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/ && j + n < seq_n; n++){
 				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
 			}
 
@@ -216,8 +215,7 @@ void LinearCapR::calc_inside(){
 			update_sum(alpha_M1, i, j, score);
 
 			// M -> MB
-			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/; n++){
-				if(i - n < 0) continue;
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/ && i - n >= 0; n++){
 				update_sum(alpha_M, i - n, j, score);
 			}
 		}
@@ -256,7 +254,6 @@ void LinearCapR::calc_inside(){
 			update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / kT);
 		}
 	}
-	DUMP_TABLES();
 }
 
 
@@ -265,75 +262,97 @@ void LinearCapR::calc_outside(){
 	beta_O[seq_n - 1] = 0;
 
 	for(int j = seq_n - 1; j >= 0; j--){
+		cout << j << ": " << flush;
 		// O
 		if(j + 1 < seq_n){
+			// O -> O
 			update_sum(beta_O, j, beta_O[j + 1] - energy_external_unpaired(j + 1, j + 1) / kT);
-		}
-		for(const auto [i, score] : alpha_S[j]){
-			if(i - 1 >= 0){
-				update_sum(beta_O, i - 1, score + beta_O[j] - energy_external(i, j) / kT);
+			
+			// O -> O + S
+			for(const auto [i, score] : alpha_S[j]){
+				update_sum(beta_O, i, score + beta_O[j + 1] - energy_external(i, j) / kT);
 			}
 		}
+		cout << "O" << flush;
 
 		// SE
-		for(const auto [i, score] : beta_SE[j]){
-			// SE -> S
-			for(int p = i; p - i <= MAXLOOP; p++){
-				for(int q = j; (j - q) + (p - i) <= MAXLOOP && q - p - 1 >= TURN; q--){
-					if((p == i && q == j) || !can_pair(p, q)) continue;
-					update_sum(beta_S, p, q, score - energy_loop(i - 1, j + 1, p, q) / kT);
-				}
+		for(const auto [i, _] : alpha_SE[j]){
+			// S -> SE
+			if(i - 1 >= 0 && j + 1 < seq_n){
+				update_sum(beta_SE, i, j, get_value(beta_S, i - 1, j + 1) - energy_loop(i - 1, j + 1, i, j) / kT);
 			}
-			
-			// SE -> M
-			update_sum(beta_M, i, j, score - energy_multi_closing(i - 1, j + 1) / kT);
 		}
+		cout << "SE" << flush;
 
 		// M
-		for(const auto [i, score] : beta_M[j]){
-			// M -> MB
-			for(int n = 0; n <= MAXLOOP; n++){
-				if(j - (i + n) - 1 >= TURN){
-					update_sum(beta_MB, i + n, j, score);
-				}				
+		for(const auto [i, _] : alpha_M[j]){
+			// SE -> M
+			if(i - 1 >= 0 && j + 1 < seq_n){
+				update_sum(beta_M, i, j, get_value(beta_SE, i, j) - energy_multi_closing(i - 1, j + 1) / kT);
 			}
 		}
-
-		// M1
-		for(const auto [i, score] : beta_M1[j]){
-			// M1 -> M2
-			update_sum(beta_M2, i, j, score);
-		}
+		cout << "M" << flush;
 
 		// MB
-		for(const auto [i, score] : beta_MB[j]){
-			// MB -> M1 + M2
+		for(const auto [i, _] : alpha_MB[j]){
+			// M1 -> MB
+			update_sum(beta_MB, i, j, get_value(beta_M1, i, j));
 
-		}
-
-		// M2
-		for(const auto [i, score] : beta_M2[j]){
-			// M2 -> S
-			for(int n = 0; n <= MAXLOOP; n++){
-				if(j - n - i - 1 >= TURN && can_pair(i, j - n)){
-					update_sum(beta_S, i, j - n, score - (energy_multi_bif(i, j - n) + energy_multi_unpaired(j - n + 1, j)) / kT);
-				}
+			// M -> MB
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/ && i - n >= 0; n++){
+				update_sum(beta_MB, i, j, get_value(beta_M, i - n, j));
 			}
 		}
+		cout << "MB" << flush;
+
+		// M1, M2
+		for(const auto [i, score_M2] : alpha_M2[j]){
+			// M1 -> M2
+			update_sum(beta_M2, i, j, get_value(beta_M1, i, j));
+
+			// MB -> M1 + M2
+			if(i - 1 < 0) continue;
+			for(const auto [k, score_M1] : alpha_M1[i - 1]){
+				update_sum(beta_M1, k, i - 1, get_value(beta_MB, k, j) + score_M2);
+				update_sum(beta_M2, i, j, get_value(beta_MB, k, j) + score_M1);
+			}
+		}
+		cout << "M1M2" << flush;
 
 		// S
-		for(const auto [i, score] : beta_S[j]){
-			// S -> S
-			if((j - 1) - (i + 1) - 1 >= TURN && can_pair(i + 1, j - 1)){
-				update_sum(beta_S, i + 1, j - 1, score - energy_loop(i, j, i + 1, j - 1) / kT);
+		for(const auto [i, _] : alpha_S[j]){
+			// O -> O + S
+			if(i - 1 >= 0 && j + 1 < seq_n){
+				update_sum(beta_S, i, j, alpha_O[i - 1] + beta_O[j + 1] - energy_external(i, j) / kT);
 			}
+			DUMP("O", i, j, get_value(beta_S, i, j));
 
-			// S -> SE
-			if((j - 1) - (i + 1) - 1 >= TURN){
-				update_sum(beta_SE, i + 1, j - 1, score);
+			// SE -> S
+			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
+				for(int q = j; (q - j) + (i - p) <= MAXLOOP && q < seq_n - 1; q++){
+					if((p == i && q == j) || !can_pair(p - 1, q + 1)) continue;
+					if(i == 50) DUMP(i, j, p, q, get_value(beta_SE, p, q) - energy_loop(p - 1, q + 1, i, j) / kT);
+					update_sum(beta_S, i, j, get_value(beta_SE, p, q) - energy_loop(p - 1, q + 1, i, j) / kT);
+				}
 			}
+			DUMP("SE", i, j, get_value(beta_S, i, j));
+
+			// S -> S
+			if(i - 1 >= 0 && j + 1 < seq_n){
+				update_sum(beta_S, i, j, get_value(beta_S, i - 1, j + 1) - energy_loop(i - 1, j + 1, i, j) / kT);
+			}
+			DUMP("S", i, j, get_value(beta_S, i, j));
+
+			// M2 -> S
+			for(int n = 0; n <= /*MAXLOOP*/1000/*DEBUG*/ && j + n < seq_n; n++){
+				if(j == 50 && n == 0) DUMP(i, j, get_value(beta_M2, i, j + n), - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
+				update_sum(beta_S, i, j, get_value(beta_M2, i, j + n) - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
+			}
+			DUMP("M2", i, j, get_value(beta_S, i, j));
 		}
+		cout << "S" << endl;
 	}
+	DUMP_TABLES();
 }
 
 

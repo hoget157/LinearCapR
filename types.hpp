@@ -12,3 +12,7 @@ using Float = double;
 using pfi = pair<Float, int>;
 
 using Table = vector<unordered_map<int, Float>>;
+
+struct State{
+	int alpha, beta;
+};

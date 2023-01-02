@@ -56,12 +56,12 @@ public:
 	
 
 	inline void DUMP_TABLES() const{
-		DUMP("O", alpha_O);
-		DUMP("S", alpha_S);
-		DUMP("SE", alpha_SE);
-		DUMP("M", alpha_M);
-		DUMP("MB", alpha_MB);
-		DUMP("M1", alpha_M1);
-		DUMP("M2", alpha_M2);
+		DUMP("O", beta_O);
+		DUMP("S", beta_S);
+		DUMP("SE", beta_SE);
+		DUMP("M", beta_M);
+		DUMP("MB", beta_MB);
+		DUMP("M1", beta_M1);
+		DUMP("M2", beta_M2);
 	}
 };
