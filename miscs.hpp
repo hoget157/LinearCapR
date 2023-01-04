@@ -62,6 +62,25 @@ inline Float get_value(const Table &t, const int i, const int j, const Float def
 }
 
 
+// for k in [i, j]: v[k] += x
+// call prefix_sum() to complete
+inline void add_range(vector<Float> &v, const int i, const int j, const Float x){
+	v[i] += x;
+	if(j + 1 < (int)v.size()) v[j + 1] -= x;
+}
+
+
+// apply effects of add_range()
+inline void prefix_sum(vector<Float> &v){
+	for(int i = 1; i < (int)v.size(); i++) v[i] += v[i - 1];
+}
+
+
+// returns whether [i, j] in t
+inline bool contains(const Table &t, const int i, const int j){
+	return t[j].count(i);
+}
+
 	// inline Float logsumexp_equal(Float &x, const Float y) const{
 	// 	return x = logsumexp(x, y);
 	// }

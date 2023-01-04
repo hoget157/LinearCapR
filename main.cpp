@@ -26,6 +26,14 @@ int main(int argc, char **argv){
 	vector<string> seq, seq_name;
 	fr.read(input_file, seq, seq_name);
 
+	// check & clear output file
+	ofstream ofs(output_file, ios::out | ios::trunc);
+	if(!ofs){
+		cout << "Error: cannot open output file: " << output_file << endl;
+		return 1;
+	}
+	ofs.close();
+
 	// run LinearCapR
 	const int s = seq.size();
 	LinearCapR lcr(beam_size);
