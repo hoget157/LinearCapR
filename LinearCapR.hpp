@@ -54,8 +54,17 @@ public:
 		return (BP_pair[seq_int[i]][seq_int[j]] > 0);
 	}
 	
+	inline void DUMP_ALPHA() const{
+		DUMP("O", alpha_O);
+		DUMP("S", alpha_S);
+		DUMP("SE", alpha_SE);
+		DUMP("M", alpha_M);
+		DUMP("MB", alpha_MB);
+		DUMP("M1", alpha_M1);
+		DUMP("M2", alpha_M2);
+	}
 
-	inline void DUMP_TABLES() const{
+	inline void DUMP_BETA() const{
 		DUMP("O", beta_O);
 		DUMP("S", beta_S);
 		DUMP("SE", beta_SE);
