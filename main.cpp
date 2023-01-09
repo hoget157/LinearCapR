@@ -1,13 +1,9 @@
 #include "LinearCapR.hpp"
 #include "FileReader.hpp"
-#include "utils.hpp"
+#include "debug.hpp"
 
 #include <iostream>
-#include <string>
-#include <vector>
 #include <fstream>
-
-using namespace std;
 
 // Usage: ./LinearCapR <input_file> <output_file> <beam_size>
 int main(int argc, char **argv){

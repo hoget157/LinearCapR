@@ -1,12 +1,13 @@
 #pragma once
 
-#include "types.hpp"
-
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <iomanip>
 #include <cmath>
+#include <unordered_map>
+
+using namespace std;
 
 
 // dump vectors
@@ -27,11 +28,6 @@ ostream &operator<<(ostream &os,const unordered_map<T1, T2> &m){
 	os << "]";
 	return os;
 }
-
-
-// update min/max
-template<class T> inline T &chmin(T &a,const T &b){ return a = min(a,b); }
-template<class T> inline T &chmax(T &a,const T &b){ return a = max(a,b); }
 
 
 // dump variables

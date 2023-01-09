@@ -1,8 +1,18 @@
 #pragma once
 
-#include "utils.hpp"
-
 #include <cmath>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+
+// using Float = float;
+using Float = double;
+// using Float = long double;
+
+using Table = vector<unordered_map<int, Float>>;
+
 
 /** The number of distinguishable base pairs */
 #define NBPAIRS 7
@@ -15,10 +25,6 @@ const int BP_pair[5][5]=
  { 0, 0, 0, 1, 0},
  { 0, 0, 2, 0, 3},
  { 0, 6, 0, 4, 0}};
-
-
-/* rtype[pair[i][j]]:=pair[j][i] */
-const int rtype[7] = {0, 2, 1, 4, 3, 6, 5};
 
 
 /** Infinity as used in minimization routines */
@@ -45,7 +51,6 @@ inline Float logsumexp(const Float x, const Float y){
 
 // t[i, j] += score
 inline Float update_sum(Table &t, const int i, const int j, const Float score){
-	// DUMP("update", i, j, score);
 	return t[j][i] = (t[j].count(i) ? logsumexp(t[j][i], score) : score);
 }
 
@@ -80,8 +85,3 @@ inline void prefix_sum(vector<Float> &v){
 inline bool contains(const Table &t, const int i, const int j){
 	return t[j].count(i);
 }
-
-	// inline Float logsumexp_equal(Float &x, const Float y) const{
-	// 	return x = logsumexp(x, y);
-	// }
-

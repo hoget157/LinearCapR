@@ -1,10 +1,8 @@
 #include "LinearCapR.hpp"
-#include "utils.hpp"
 // #include "energy_param.hpp"
 #include "legacy_energy_param.hpp"
 
 #include <fstream>
-#include <cmath>
 #include <algorithm>
 
 

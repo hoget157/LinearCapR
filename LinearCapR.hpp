@@ -1,10 +1,8 @@
 #pragma once
 
-#include "types.hpp"
 #include "miscs.hpp"
-#include "utils.hpp"
+#include "debug.hpp"
 
-#include <cmath>
 #include <string>
 
 class LinearCapR{
