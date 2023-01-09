@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-// partite [lower, upper) and small scores are in [lower, split)
+// partite [lower, upper) and small scores are in [lower, split]
 int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
 	Float pivot = scores[upper - 1];
 	int i = lower, j = upper - 1;
@@ -20,7 +20,7 @@ int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, co
 }
 
 
-// returns k-th(0-indexed) smalled score in [lower, upper)
+// returns k-th(1-indexed) smallest score in [lower, upper)
 Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
 	if(upper - lower == 1) return scores[lower];
 	int split = quickselect_partition(scores, lower, upper);
@@ -48,7 +48,9 @@ Float LinearCapR::prune(unordered_map<int, Float> &states) const{
 
 	// erase low-scored states
 	for(auto it = states.begin(); it != states.end();){
-		if(it->second < threshold) it = states.erase(it);
+		const auto [i, score] = *it;
+		Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
+		if(new_score <= threshold) it = states.erase(it);
 		else it++;
 	}
 
@@ -394,6 +396,20 @@ void LinearCapR::calc_profile(){
 	for(int i = 1; i < seq_n - 1; i++){
 		prob_E[i] = exp(alpha_O[i - 1] + beta_O[i + 1] - logZ);
 	}
+
+	// regularize
+	for(int i = 0; i < seq_n; i++){
+		Float *probs[6] = {&prob_B[i], &prob_E[i], &prob_H[i], &prob_I[i], &prob_M[i], &prob_S[i]};
+		Float sum_prob_i = 0;
+		for(int i = 0; i < 6; i++){
+			// negative probabilities to 0
+			if(*(probs[i]) < 0) *(probs[i]) = 0;
+			sum_prob_i += *(probs[i]);
+		}
+
+		// sum of probabilities to 1
+		for(int i = 0; i < 6; i++) *(probs[i]) /= sum_prob_i;
+	}
 }
 
 
@@ -408,7 +424,6 @@ Float LinearCapR::energy_hairpin(int i, int j) const{
 	if(d != 3){
 		energy += mismatchH37[type][seq_int[i + 1]][seq_int[j - 1]];
 	}else if(type > 2){
-		// TODO: why add terminal penalty?
 		energy += TerminalAU37;
 	}
 	return energy;
