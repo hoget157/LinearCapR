@@ -196,11 +196,11 @@ void LinearCapR::calc_inside(){
 				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
 			}
 
-			// SE -> S: p..i..j..q
+			// SE -> S: p..i..j..q, [p - 1, q] can be pair
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
-				for(int q = j; (q - j) + (i - p) <= MAXLOOP && q + 1 < seq_n; q++){
-					if((p == i && q == j) || !can_pair(p - 1, q + 1)) continue;
-					update_sum(alpha_SE, p, q, score - energy_loop(p - 1, q + 1, i, j) / kT);
+				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
+					if((p == i && q == j + 1)) continue;
+					update_sum(alpha_SE, p, q - 1, score - energy_loop(p - 1, q, i, j) / kT);
 				}
 			}
 
@@ -330,9 +330,9 @@ void LinearCapR::calc_outside(){
 
 			// SE -> S
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
-				for(int q = j; (q - j) + (i - p) <= MAXLOOP && q < seq_n - 1; q++){
-					if((p == i && q == j) || !can_pair(p - 1, q + 1)) continue;
-					update_sum(beta_S, i, j, get_value(beta_SE, p, q) - energy_loop(p - 1, q + 1, i, j) / kT);
+				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
+					if((p == i && q == j + 1)) continue;
+					update_sum(beta_S, i, j, get_value(beta_SE, p, q - 1) - energy_loop(p - 1, q, i, j) / kT);
 				}
 			}
 
