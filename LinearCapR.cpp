@@ -122,10 +122,22 @@ void LinearCapR::clear(){
 
 // calc structural profile
 void LinearCapR::run(const string &seq){
+	Time<chrono::milliseconds> t;
+	t.init();
 	initialize(seq);
+	printf("init: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+
+	t.init();
 	calc_inside();
+	printf("inside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+
+	t.init();
 	calc_outside();
+	printf("outside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+
+	t.init();
 	calc_profile();
+	printf("profile: %.2lf s\n", t.measure() / 1000); fflush(stdout);
 }
 
 

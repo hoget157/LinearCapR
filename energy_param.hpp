@@ -17,7 +17,7 @@ extracted from ViennaRNA v2.5.1
 /** The maximum loop length */
 #define MAXLOOP 30
 
-#define MULTI_MAX_UNPAIRED 1000
+#define MULTI_MAX_UNPAIRED 30
 
 const double temperature = 37;
 const double kT = (temperature + K0) * GASCONST / 10.;
