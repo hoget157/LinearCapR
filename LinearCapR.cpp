@@ -95,28 +95,12 @@ void LinearCapR::clear(){
 	seq_int.clear();
 	seq_n = 0;
 
-	alpha_O.clear();
-	alpha_S.clear();
-	alpha_SE.clear();
-	alpha_M.clear();
-	alpha_MB.clear();
-	alpha_M1.clear();
-	alpha_M2.clear();
-	
-	beta_O.clear();
-	beta_S.clear();
-	beta_SE.clear();
-	beta_M.clear();
-	beta_MB.clear();
-	beta_M1.clear();
-	beta_M2.clear();
+	for(int i = 0; i < NTABLES; i++){
+		alphas[i]->clear();
+		betas[i]->clear();
+	}
 
-	prob_B.clear();
-	prob_I.clear();
-	prob_H.clear();
-	prob_M.clear();
-	prob_E.clear();
-	prob_S.clear();
+	for(int i = 0; i < NPROBS; i++) probs[i]->clear();
 }
 
 
@@ -151,28 +135,36 @@ void LinearCapR::initialize(const string &seq){
 	}
 
 	// prepare DP tables
+	alphas[0] = &alpha_S;
+	alphas[1] = &alpha_SE;
+	alphas[2] = &alpha_M;
+	alphas[3] = &alpha_MB;
+	alphas[4] = &alpha_M1;
+	alphas[5] = &alpha_M2;
+
+	betas[0] = &beta_S;
+	betas[1] = &beta_SE;
+	betas[2] = &beta_M;
+	betas[3] = &beta_MB;
+	betas[4] = &beta_M1;
+	betas[5] = &beta_M2;
+
 	alpha_O.resize(seq_n, -INF);
-	alpha_S.resize(seq_n);
-	alpha_SE.resize(seq_n);
-	alpha_M.resize(seq_n);
-	alpha_MB.resize(seq_n);
-	alpha_M1.resize(seq_n);
-	alpha_M2.resize(seq_n);
-
 	beta_O.resize(seq_n, -INF);
-	beta_S.resize(seq_n);
-	beta_SE.resize(seq_n);
-	beta_M.resize(seq_n);
-	beta_MB.resize(seq_n);
-	beta_M1.resize(seq_n);
-	beta_M2.resize(seq_n);
+	for(int i = 0; i < NTABLES; i++){
+		alphas[i]->resize(seq_n);
+		betas[i]->resize(seq_n);
+	}
 
-	prob_B.resize(seq_n);
-	prob_E.resize(seq_n);
-	prob_H.resize(seq_n);
-	prob_I.resize(seq_n);
-	prob_M.resize(seq_n);
-	prob_S.resize(seq_n);
+	// prepare prob vectors
+	probs[0] = &prob_B;
+	probs[1] = &prob_E;
+	probs[2] = &prob_H;
+	probs[3] = &prob_I;
+	probs[4] = &prob_M;
+	probs[5] = &prob_S;
+
+	for(int i = 0; i < NPROBS; i++) probs[i]->resize(seq_n);
 }
 
 
@@ -411,16 +403,15 @@ void LinearCapR::calc_profile(){
 
 	// regularize
 	for(int i = 0; i < seq_n; i++){
-		Float *probs[6] = {&prob_B[i], &prob_E[i], &prob_H[i], &prob_I[i], &prob_M[i], &prob_S[i]};
 		Float sum_prob_i = 0;
-		for(int i = 0; i < 6; i++){
+		for(int j = 0; j < NPROBS; j++){
 			// negative probabilities to 0
-			if(*(probs[i]) < 0) *(probs[i]) = 0;
-			sum_prob_i += *(probs[i]);
+			if(probs[j]->at(i) < 0) probs[j]->at(i) = 0;
+			sum_prob_i += probs[j]->at(i);
 		}
 
 		// sum of probabilities to 1
-		for(int i = 0; i < 6; i++) *(probs[i]) /= sum_prob_i;
+		for(int j = 0; j < NPROBS; j++) probs[j]->at(i) /= sum_prob_i;
 	}
 }
 

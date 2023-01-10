@@ -11,7 +11,7 @@ public:
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
-// private:
+private:
 	const int beam_size;
 
 	// integerized sequence
@@ -20,11 +20,11 @@ public:
 
 	// DP tables: log of sum of Boltzmann factors in interval [i, j]
 	vector<Float> alpha_O, beta_O;
-	Table alpha_S, alpha_SE, alpha_M, alpha_MB, alpha_M1, alpha_M2;
-	Table beta_S, beta_SE, beta_M, beta_MB, beta_M1, beta_M2;
+	Table alpha_S, alpha_SE, alpha_M, alpha_MB, alpha_M1, alpha_M2, *alphas[NTABLES];
+	Table beta_S, beta_SE, beta_M, beta_MB, beta_M1, beta_M2, *betas[NTABLES];
 
 	// calculated structural profiles
-	vector<Float> prob_B, prob_I, prob_H, prob_M, prob_E, prob_S;
+	vector<Float> prob_B, prob_I, prob_H, prob_M, prob_E, prob_S, *probs[NPROBS];
 
 	// functions for pruning
 	int quickselect_partition(vector<Float>&, const int, const int) const;

@@ -17,6 +17,9 @@ using Table = vector<unordered_map<int, Float>>;
 /** The number of distinguishable base pairs */
 #define NBPAIRS 7
 
+#define NTABLES 6
+#define NPROBS 6
+
 
 const int BP_pair[5][5]=
 /* @  A  C  G  U*/
