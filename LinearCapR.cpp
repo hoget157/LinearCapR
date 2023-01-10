@@ -165,6 +165,16 @@ void LinearCapR::initialize(const string &seq){
 	probs[5] = &prob_S;
 
 	for(int i = 0; i < NPROBS; i++) probs[i]->resize(seq_n);
+
+	// calc next pair index
+	for(int i = 0; i < NBASE; i++) next_pair[i].resize(seq_n + 1, seq_n);
+	for(int i = seq_n - 1; i >= 0; i--){
+		for(int j = 0; j < NBASE; j++){
+			next_pair[j][i] = next_pair[j][i + 1];
+			if(BP_pair[seq_int[i]][j] > 0) next_pair[j][i] = i;
+		}
+	}
+	// for(int i = 0;i < NBASE; i++) DUMP(next_pair[i]);
 }
 
 

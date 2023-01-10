@@ -18,6 +18,9 @@ private:
 	int seq_n;
 	vector<int> seq_int;
 
+	// next_pair[i][j] := (the first index after j (including j) which can be a pair with base i, otherwise seq_n)
+	vector<int> next_pair[NBASE];
+
 	// DP tables: log of sum of Boltzmann factors in interval [i, j]
 	vector<Float> alpha_O, beta_O;
 	Table alpha_S, alpha_SE, alpha_M, alpha_MB, alpha_M1, alpha_M2, *alphas[NTABLES];
