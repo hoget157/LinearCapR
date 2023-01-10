@@ -6,7 +6,7 @@ DEPS := $(addprefix $(OBJDIR)\, $(SRCS:%.cpp=%.d)) # %マクロを用いて置�
 
 # 各種設定を変数として定義
 CC := g++
-CCFLAGS := -O3 -std=c++17 -Wall -pg
+CCFLAGS := -O3 -std=c++17 -Wall #-pg -g
 # INCLUDEPATH := -I/usr/local/include
 # LIBPATH := -L/usr/local/lib
 # LIBS := -framework Cocoa -framework OpenGL -lz -ljpeg -lpng

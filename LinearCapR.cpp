@@ -427,7 +427,7 @@ void LinearCapR::calc_profile(){
 
 
 // calc energy of hairpin loop [i, j]
-Float LinearCapR::energy_hairpin(int i, int j) const{
+Float LinearCapR::energy_hairpin(const int i, const int j) const{
 	int type = BP_pair[seq_int[i]][seq_int[j]];
 	int d = j - i - 1;
 
@@ -444,7 +444,7 @@ Float LinearCapR::energy_hairpin(int i, int j) const{
 
 
 // calc energy of loop [i, p, q, j]
-Float LinearCapR::energy_loop(int i, int j, int p, int q) const{
+Float LinearCapR::energy_loop(const int i, const int j, const int p, const int q) const{
 	int type1 = BP_pair[seq_int[i]][seq_int[j]], type2 = BP_pair[seq_int[q]][seq_int[p]];;
 	int d1 = p - i - 1, d2 = j - q - 1;
 	int d = d1 + d2, dmin = min(d1, d2), dmax = max(d1, d2);
