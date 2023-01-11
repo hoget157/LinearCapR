@@ -99,8 +99,8 @@ const int mismatchI37[NBPAIRS][5][5] =
    {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
 };
 
-const int (*mismatch1nI37)[5][5] = mismatchI37;
-const int (*mismatch23I37)[5][5] = mismatchI37;
+extern const int (*mismatch1nI37)[5][5];
+extern const int (*mismatch23I37)[5][5];
 
  const int mismatchH37[NBPAIRS][5][5] =
 { /* @@ */

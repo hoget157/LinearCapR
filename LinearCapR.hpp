@@ -11,6 +11,7 @@ public:
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
+	Float get_energy_ensemble() const;
 private:
 	const int beam_size;
 
@@ -49,9 +50,8 @@ private:
 	Float energy_multi_closing(const int, const int) const;
 	Float energy_multi_bif(const int, const int) const;
 
-
 	// returns whether base (i, j) can form pair 
-	inline bool can_pair(const int i, const int j){
+	inline bool can_pair(const int i, const int j) const{
 		return (BP_pair[seq_int[i]][seq_int[j]] > 0);
 	}
 	

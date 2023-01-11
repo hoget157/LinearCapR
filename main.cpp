@@ -4,11 +4,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
-// Usage: ./LinearCapR <input_file> <output_file> <beam_size>
+// Usage: ./LinearCapR <input_file> <output_file> <beam_size> [options]
 int main(int argc, char **argv){
-	if(argc != 4){
-		cout << "Usage: ./LinearCapR <input_file> <output_file> <beam_size>" << endl;
+	if(argc < 4){
+		cout << "Usage: ./LinearCapR <input_file> <output_file> <beam_size> [options]" << endl;
 		return 1;
 	}
 
@@ -16,6 +17,17 @@ int main(int argc, char **argv){
 	string input_file = argv[1];
 	string output_file = argv[2];
 	int beam_size = atoi(argv[3]);
+
+	// get options
+	bool output_energy = false;
+	for(int i = 4; i < argc; i++){
+		if(strcmp(argv[i], "-e") == 0){
+			output_energy = true;
+		}else{
+			cout << "Error: invalid option: " << argv[i] << endl;
+			return 1;
+		}
+	}
 
 	// read fasta file
 	FileReader fr;
@@ -46,10 +58,8 @@ int main(int argc, char **argv){
 		lcr.output(ofs, seq_name[i]);
 		ofs.close();
 
+		if(output_energy) printf("G_ensemble: %.2lf\n", lcr.get_energy_ensemble());
+
 		lcr.clear();
 	}
 }
-
-// int main(){
-
-// }

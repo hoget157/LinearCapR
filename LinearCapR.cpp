@@ -104,24 +104,31 @@ void LinearCapR::clear(){
 }
 
 
+// returns free energy of ensemble in kcal/mol
+Float LinearCapR::get_energy_ensemble() const{
+	return (alpha_O[seq_n - 1] * -(temperature + K0) * GASCONST) / 1000;
+}
+
+
 // calc structural profile
 void LinearCapR::run(const string &seq){
-	Time<chrono::milliseconds> t;
-	t.init();
+	// Time<chrono::milliseconds> t;
+	// t.init();
 	initialize(seq);
-	printf("init: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+	// printf("init: %.2lf s\n", t.measure() / 1000); fflush(stdout);
 
-	t.init();
+	// t.init();
 	calc_inside();
-	printf("inside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+	// printf("inside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
 
-	t.init();
+	// t.init();
 	calc_outside();
-	printf("outside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+	// printf("outside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
 
-	t.init();
+	// t.init();
 	calc_profile();
-	printf("profile: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+	// printf("profile: %.2lf s\n", t.measure() / 1000); fflush(stdout);
+	// DUMP("alpha_O", alpha_O);
 }
 
 
@@ -174,7 +181,6 @@ void LinearCapR::initialize(const string &seq){
 			if(BP_pair[seq_int[i]][j] > 0) next_pair[j][i] = i;
 		}
 	}
-	// for(int i = 0;i < NBASE; i++) DUMP(next_pair[i]);
 }
 
 
