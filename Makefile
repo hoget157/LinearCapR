@@ -1,10 +1,11 @@
 PROG := LinearCapR
-OBJDIR := .\temp
+OBJDIR := ./temp
 SRCS := $(wildcard *.cpp)
 OBJS := $(addprefix $(OBJDIR)/, $(SRCS:%.cpp=%.o))
 DEPS := $(addprefix $(OBJDIR)/, $(SRCS:%.cpp=%.d))
 
 ifeq ($(OS),Windows_NT)
+OBJDIR := .\temp
 OBJS = $(addprefix $(OBJDIR)\, $(SRCS:%.cpp=%.o))
 DEPS = $(addprefix $(OBJDIR)\, $(SRCS:%.cpp=%.d))
 endif
