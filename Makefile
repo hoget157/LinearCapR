@@ -23,9 +23,11 @@ $(PROG): $(OBJS)
 
 ifeq ($(OS),Windows_NT)
 $(OBJDIR)\\%.o: %.cpp
+	mkdir -p temp
 	$(CC) $(CCFLAGS) $(INCLUDEPATH) -MMD -MP -MF $(<:%.cpp=temp\\%.d) -c $< -o $(<:%.cpp=temp\\%.o)
 else
 $(OBJDIR)/%.o: %.cpp
+	mkdir -p temp
 	$(CC) $(CCFLAGS) $(INCLUDEPATH) -MMD -MP -MF $(<:%.cpp=temp/%.d) -c $< -o $(<:%.cpp=temp/%.o)
 endif
 
