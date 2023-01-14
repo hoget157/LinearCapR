@@ -23,7 +23,7 @@ $(PROG): $(OBJS)
 
 ifeq ($(OS),Windows_NT)
 $(OBJDIR)\\%.o: %.cpp
-	mkdir -p temp
+	if not exist temp mkdir temp
 	$(CC) $(CCFLAGS) $(INCLUDEPATH) -MMD -MP -MF $(<:%.cpp=temp\\%.d) -c $< -o $(<:%.cpp=temp\\%.o)
 else
 $(OBJDIR)/%.o: %.cpp

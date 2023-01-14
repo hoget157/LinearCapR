@@ -1,14 +1,15 @@
 #include "LinearCapR.hpp"
-// #include "energy_param.hpp"
-#include "legacy_energy_param.hpp"
+#include "energy_param.hpp"
+// #include "legacy_energy_param.hpp"
 
 #include <fstream>
 #include <algorithm>
+#include <cstring>
 
 
 // partite [lower, upper) and small scores are in [lower, split]
 int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
-	Float pivot = scores[upper - 1];
+	const Float pivot = scores[upper - 1];
 	int i = lower, j = upper - 1;
 	while(i < j){
 		while (scores[i] < pivot) i++;
@@ -23,8 +24,8 @@ int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, co
 // returns k-th(1-indexed) smallest score in [lower, upper)
 Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
 	if(upper - lower == 1) return scores[lower];
-	int split = quickselect_partition(scores, lower, upper);
-	int length = split - lower + 1;
+	const int split = quickselect_partition(scores, lower, upper);
+	const int length = split - lower + 1;
 	if(length == k) return scores[split];
 	if(k < length) return quickselect(scores, lower, split, k);
 	return quickselect(scores, split + 1, upper, k - length);
@@ -39,17 +40,17 @@ Float LinearCapR::prune(unordered_map<int, Float> &states) const{
 	vector<Float> scores;
 	for(const auto [i, score] : states){
 		// bias
-		Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
+		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
         scores.push_back(new_score);
 	}
 
 	// threshold
-	Float threshold = quickselect(scores, 0, scores.size(), scores.size() - beam_size);
+	const Float threshold = quickselect(scores, 0, scores.size(), scores.size() - beam_size);
 
 	// erase low-scored states
 	for(auto it = states.begin(); it != states.end();){
 		const auto [i, score] = *it;
-		Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
+		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
 		if(new_score <= threshold) it = states.erase(it);
 		else it++;
 	}
@@ -92,6 +93,7 @@ void LinearCapR::output(ofstream &ofs, const string &seq_name) const{
 
 // clear temp tables & profiles
 void LinearCapR::clear(){
+	seq = "";
 	seq_int.clear();
 	seq_n = 0;
 
@@ -134,6 +136,8 @@ void LinearCapR::run(const string &seq){
 
 // initialize
 void LinearCapR::initialize(const string &seq){
+	this->seq = seq;
+
 	// integerize sequence
 	seq_n = seq.length();
 	seq_int.resize(seq_n);
@@ -254,7 +258,7 @@ void LinearCapR::calc_inside(){
 
 		// SE -> (Hairpin)
 		for(int n = TURN; n <= MAXLOOP; n++){
-			int i = j - n + 1;
+			const int i = j - n + 1;
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
 				update_sum(alpha_SE, i, j, -energy_hairpin(i - 1, j + 1) / kT);
 			}
@@ -358,7 +362,7 @@ void LinearCapR::calc_outside(){
 
 // calc structural profile
 void LinearCapR::calc_profile(){
-	Float logZ = alpha_O[seq_n - 1];
+	const Float logZ = alpha_O[seq_n - 1];
 
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [j, score] : beta_SE[k]){
@@ -369,7 +373,7 @@ void LinearCapR::calc_profile(){
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
 				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
 					if((p == j && q == k) || !contains(alpha_S, p, q)) continue;
-					Float new_score = exp(score + alpha_S[q][p] - energy_loop(j - 1, k + 1, p, q) / kT - logZ);
+					const Float new_score = exp(score + alpha_S[q][p] - energy_loop(j - 1, k + 1, p, q) / kT - logZ);
 					add_range((q == k ? prob_B : prob_I), j, p - 1, new_score);
 					add_range((p == j ? prob_B : prob_I), q + 1, k, new_score);
 				}
@@ -385,7 +389,7 @@ void LinearCapR::calc_profile(){
 		for(const auto [p, score] : alpha_MB[k]){
 			for(int j = p - 1; j >= max(0, p - MAXLOOP); j--){
 				if(!contains(beta_M, j, k)) continue;
-				Float new_score = exp(score + beta_M[k][j] - energy_multi_unpaired(j, p - 1) / kT - logZ);
+				const Float new_score = exp(score + beta_M[k][j] - energy_multi_unpaired(j, p - 1) / kT - logZ);
 				add_range(prob_M, j, p - 1, new_score);
 			}
 		}
@@ -394,7 +398,7 @@ void LinearCapR::calc_profile(){
 		for(const auto [j, score] : alpha_S[q]){
 			for(int k = q + 1; k <= min(seq_n - 1, q + MAXLOOP); k++){
 				if(!contains(beta_M2, j, k)) continue;
-				Float new_score = exp(score + beta_M2[k][j] - (energy_multi_bif(j, q) + energy_multi_unpaired(q + 1, k)) / kT - logZ);
+				const Float new_score = exp(score + beta_M2[k][j] - (energy_multi_bif(j, q) + energy_multi_unpaired(q + 1, k)) / kT - logZ);
 				add_range(prob_M, q + 1, k, new_score);
 			}
 		}
@@ -404,7 +408,7 @@ void LinearCapR::calc_profile(){
 	// S
 	for(int j = 0; j < seq_n; j++){
 		for(const auto [i, score] : alpha_S[j]){
-			Float new_score = exp(score + beta_S[j][i] - logZ);
+			const Float new_score = exp(score + beta_S[j][i] - logZ);
 			prob_S[i] += new_score;
 			prob_S[j] += new_score;
 		}
@@ -432,10 +436,38 @@ void LinearCapR::calc_profile(){
 }
 
 
+// returns index if loop [i, j] is special hairpin, otherwise -1
+int LinearCapR::special_hairpin(const int i, const int j) const{
+#ifdef LEGACY_ENERGY
+	return -1;
+#else
+	const int d = j - i - 1;
+	const char *loops_seq;
+	if(d == 3) loops_seq = Triloops;
+	else if(d == 4) loops_seq = Tetraloops;
+	else if(d == 6) loops_seq = Hexaloops;
+	else return -1;
+
+	char *sp = strstr(loops_seq, seq.substr(i, d + 2).c_str());
+	return (sp ? (sp - loops_seq) / (d + 3) : -1);
+#endif
+}
+
+
 // calc energy of hairpin loop [i, j]
 Float LinearCapR::energy_hairpin(const int i, const int j) const{
-	int type = BP_pair[seq_int[i]][seq_int[j]];
-	int d = j - i - 1;
+	const int type = BP_pair[seq_int[i]][seq_int[j]];
+	const int d = j - i - 1;
+	
+#ifndef LEGACY_ENERGY
+	// check special hairpin
+	const int index = special_hairpin(i, j);
+	if(index != -1){
+		if(d == 3) return Triloop37[index];
+		if(d == 4) return Tetraloop37[index];
+		if(d == 6) return Hexaloop37[index];
+	}
+#endif
 
 	// initiation
 	Float energy = (d <= MAXLOOP ? hairpin37[d] : hairpin37[30] + lxc37 * log(d / 30.));
@@ -451,13 +483,13 @@ Float LinearCapR::energy_hairpin(const int i, const int j) const{
 
 // calc energy of loop [i, p, q, j]
 Float LinearCapR::energy_loop(const int i, const int j, const int p, const int q) const{
-	int type1 = BP_pair[seq_int[i]][seq_int[j]], type2 = BP_pair[seq_int[q]][seq_int[p]];;
-	int d1 = p - i - 1, d2 = j - q - 1;
-	int d = d1 + d2, dmin = min(d1, d2), dmax = max(d1, d2);
-	int si = seq_int[i + 1];
-	int sj = seq_int[j - 1];
-	int sp = seq_int[p - 1];
-	int sq = seq_int[q + 1];
+	const int type1 = BP_pair[seq_int[i]][seq_int[j]], type2 = BP_pair[seq_int[q]][seq_int[p]];;
+	const int d1 = p - i - 1, d2 = j - q - 1;
+	const int d = d1 + d2, dmin = min(d1, d2), dmax = max(d1, d2);
+	const int si = seq_int[i + 1];
+	const int sj = seq_int[j - 1];
+	const int sp = seq_int[p - 1];
+	const int sq = seq_int[q + 1];
 
 	if(dmax == 0){
 		// stack
@@ -515,7 +547,7 @@ Float LinearCapR::energy_multi_closing(const int i, const int j) const{
 
 // calc energy of bifurcation [i, j] in a multiloop
 Float LinearCapR::energy_multi_bif(const int i, const int j) const{
-	int type = BP_pair[seq_int[i]][seq_int[j]];
+	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = ML_intern37;
 
 #ifdef LEGACY_ENERGY
@@ -535,7 +567,7 @@ Float LinearCapR::energy_multi_bif(const int i, const int j) const{
 
 // calc energy of external loop [i, j]
 Float LinearCapR::energy_external(const int i, const int j) const{
-	int type = BP_pair[seq_int[i]][seq_int[j]];
+	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = 0;
 
 #ifdef LEGACY_ENERGY

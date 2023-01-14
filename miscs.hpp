@@ -22,8 +22,11 @@ using Table = vector<unordered_map<int, Float>>;
 #define NTABLES 6
 /** The number of type of profiles*/
 #define NPROBS 6
+/** Infinity as used in minimization routines */
+#define INF 10000000
 
 
+// convert bases to base pair index
 const int BP_pair[NBASE][NBASE]=
 /* @  A  C  G  U*/
 {{ 0, 0, 0, 0, 0},
@@ -31,10 +34,6 @@ const int BP_pair[NBASE][NBASE]=
  { 0, 0, 0, 1, 0},
  { 0, 0, 2, 0, 3},
  { 0, 6, 0, 4, 0}};
-
-
-/** Infinity as used in minimization routines */
-#define INF 10000000
 
 
 // convert base character to number
@@ -49,7 +48,6 @@ inline int base_to_num(const char base){
 
 // log space: borrowed from CONTRAfold
 inline Float Fast_LogExpPlusOne(Float x){
-  
     // Bounds for tolerance of 7.05e-06: (0, 11.8625)
     // Approximating interval: (0, 0.661537) --> ((T(-0.0065591595)*x+T(0.1276442762))*x+T(0.4996554598))*x+T(0.6931542306);
     // Approximating interval: (0.661537, 1.63202) --> ((T(-0.0155157557)*x+T(0.1446775699))*x+T(0.4882939746))*x+T(0.6958092989);
