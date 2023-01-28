@@ -1,6 +1,6 @@
 #include "LinearCapR.hpp"
-#include "energy_param.hpp"
-// #include "legacy_energy_param.hpp"
+// #include "energy_param.hpp"
+#include "legacy_energy_param.hpp"
 
 #include <fstream>
 #include <algorithm>
