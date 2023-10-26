@@ -46,7 +46,7 @@ inline int base_to_num(const char base){
 }
 
 
-// log space: borrowed from CONTRAfold
+// returns log(exp(x)+1) (borrowed from CONTRAfold)
 inline Float Fast_LogExpPlusOne(Float x){
     // Bounds for tolerance of 7.05e-06: (0, 11.8625)
     // Approximating interval: (0, 0.661537) --> ((T(-0.0065591595)*x+T(0.1276442762))*x+T(0.4996554598))*x+T(0.6931542306);

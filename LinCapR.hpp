@@ -1,13 +1,12 @@
 #pragma once
 
 #include "miscs.hpp"
-#include "debug.hpp"
 
 #include <string>
 
-class LinearCapR{
+class LinCapR{
 public:
-	LinearCapR(int beam_size) : beam_size(beam_size){}
+	LinCapR(int beam_size) : beam_size(beam_size){}
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
@@ -57,25 +56,5 @@ private:
 	// returns whether base (i, j) can form pair 
 	inline bool can_pair(const int i, const int j) const{
 		return (BP_pair[seq_int[i]][seq_int[j]] > 0);
-	}
-	
-	inline void DUMP_ALPHA() const{
-		DUMP("O", alpha_O);
-		DUMP("S", alpha_S);
-		DUMP("SE", alpha_SE);
-		DUMP("M", alpha_M);
-		DUMP("MB", alpha_MB);
-		DUMP("M1", alpha_M1);
-		DUMP("M2", alpha_M2);
-	}
-
-	inline void DUMP_BETA() const{
-		DUMP("O", beta_O);
-		DUMP("S", beta_S);
-		DUMP("SE", beta_SE);
-		DUMP("M", beta_M);
-		DUMP("MB", beta_MB);
-		DUMP("M1", beta_M1);
-		DUMP("M2", beta_M2);
 	}
 };

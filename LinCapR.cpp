@@ -1,4 +1,4 @@
-#include "LinearCapR.hpp"
+#include "LinCapR.hpp"
 #include "energy_param.hpp"
 // #include "legacy_energy_param.hpp"
 
@@ -8,7 +8,7 @@
 
 
 // partite [lower, upper) and small scores are in [lower, split]
-int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
+int LinCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
 	const Float pivot = scores[upper - 1];
 	int i = lower, j = upper - 1;
 	while(i < j){
@@ -22,7 +22,7 @@ int LinearCapR::quickselect_partition(vector<Float> &scores, const int lower, co
 
 
 // returns k-th(1-indexed) smallest score in [lower, upper)
-Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
+Float LinCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
 	if(upper - lower == 1) return scores[lower];
 	const int split = quickselect_partition(scores, lower, upper);
 	const int length = split - lower + 1;
@@ -33,7 +33,7 @@ Float LinearCapR::quickselect(vector<Float> &scores, const int lower, const int 
 
 
 // prune top-k states
-Float LinearCapR::prune(unordered_map<int, Float> &states) const{
+Float LinCapR::prune(unordered_map<int, Float> &states) const{
 	if(beam_size == 0 || (int)states.size() <= beam_size) return -INF;
 	
 	// extract scores
@@ -60,7 +60,7 @@ Float LinearCapR::prune(unordered_map<int, Float> &states) const{
 
 
 // output structural profile
-void LinearCapR::output(ofstream &ofs, const string &seq_name) const{
+void LinCapR::output(ofstream &ofs, const string &seq_name) const{
 	ofs << ">" + seq_name << endl;
 
 	ofs << "Bulge ";
@@ -92,7 +92,7 @@ void LinearCapR::output(ofstream &ofs, const string &seq_name) const{
 
 
 // clear temp tables & profiles
-void LinearCapR::clear(){
+void LinCapR::clear(){
 	seq = "";
 	seq_int.clear();
 	seq_n = 0;
@@ -107,35 +107,22 @@ void LinearCapR::clear(){
 
 
 // returns free energy of ensemble in kcal/mol
-Float LinearCapR::get_energy_ensemble() const{
+Float LinCapR::get_energy_ensemble() const{
 	return (alpha_O[seq_n - 1] * -(temperature + K0) * GASCONST) / 1000;
 }
 
 
 // calc structural profile
-void LinearCapR::run(const string &seq){
-	// Time<chrono::milliseconds> t;
-	// t.init();
+void LinCapR::run(const string &seq){
 	initialize(seq);
-	// printf("init: %.2lf s\n", t.measure() / 1000); fflush(stdout);
-
-	// t.init();
 	calc_inside();
-	// printf("inside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
-
-	// t.init();
 	calc_outside();
-	// printf("outside: %.2lf s\n", t.measure() / 1000); fflush(stdout);
-
-	// t.init();
 	calc_profile();
-	// printf("profile: %.2lf s\n", t.measure() / 1000); fflush(stdout);
-	// DUMP("alpha_O", alpha_O);
 }
 
 
 // initialize
-void LinearCapR::initialize(const string &seq){
+void LinCapR::initialize(const string &seq){
 	this->seq = seq;
 
 	// integerize sequence
@@ -189,7 +176,7 @@ void LinearCapR::initialize(const string &seq){
 
 
 // calc inside variables
-void LinearCapR::calc_inside(){
+void LinCapR::calc_inside(){
 	alpha_O[0] = 0;
 
 	for(int j = 0; j < seq_n; j++){
@@ -282,7 +269,7 @@ void LinearCapR::calc_inside(){
 
 
 // calc outside variables
-void LinearCapR::calc_outside(){
+void LinCapR::calc_outside(){
 	for(int j = seq_n - 1; j >= 0; j--){
 		// O
 		// O -> O
@@ -361,7 +348,7 @@ void LinearCapR::calc_outside(){
 
 
 // calc structural profile
-void LinearCapR::calc_profile(){
+void LinCapR::calc_profile(){
 	const Float logZ = alpha_O[seq_n - 1];
 
 	for(int k = 0; k < seq_n; k++){
@@ -437,7 +424,7 @@ void LinearCapR::calc_profile(){
 
 
 // returns index if loop [i, j] is special hairpin, otherwise -1
-int LinearCapR::special_hairpin(const int i, const int j) const{
+int LinCapR::special_hairpin(const int i, const int j) const{
 #ifdef LEGACY_ENERGY
 	return -1;
 #else
@@ -455,7 +442,7 @@ int LinearCapR::special_hairpin(const int i, const int j) const{
 
 
 // calc energy of hairpin loop [i, j]
-Float LinearCapR::energy_hairpin(const int i, const int j) const{
+Float LinCapR::energy_hairpin(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	const int d = j - i - 1;
 	
@@ -482,7 +469,7 @@ Float LinearCapR::energy_hairpin(const int i, const int j) const{
 
 
 // calc energy of loop [i, p, q, j]
-Float LinearCapR::energy_loop(const int i, const int j, const int p, const int q) const{
+Float LinCapR::energy_loop(const int i, const int j, const int p, const int q) const{
 	const int type1 = BP_pair[seq_int[i]][seq_int[j]], type2 = BP_pair[seq_int[q]][seq_int[p]];;
 	const int d1 = p - i - 1, d2 = j - q - 1;
 	const int d = d1 + d2, dmin = min(d1, d2), dmax = max(d1, d2);
@@ -533,20 +520,20 @@ Float LinearCapR::energy_loop(const int i, const int j, const int p, const int q
 
 
 // calc energy where bases in multi [i, j] are unpaired
-Float LinearCapR::energy_multi_unpaired(const int i, const int j) const{
+Float LinCapR::energy_multi_unpaired(const int i, const int j) const{
 	return 0;
 }
 
 
 // calc energy of multiloop [i, j]
-Float LinearCapR::energy_multi_closing(const int i, const int j) const{
+Float LinCapR::energy_multi_closing(const int i, const int j) const{
 	// we look clockwise, so i, j are swapped
 	return energy_multi_bif(j, i) + ML_closing37;
 }
 
 
 // calc energy of bifurcation [i, j] in a multiloop
-Float LinearCapR::energy_multi_bif(const int i, const int j) const{
+Float LinCapR::energy_multi_bif(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = ML_intern37;
 
@@ -566,7 +553,7 @@ Float LinearCapR::energy_multi_bif(const int i, const int j) const{
 
 
 // calc energy of external loop [i, j]
-Float LinearCapR::energy_external(const int i, const int j) const{
+Float LinCapR::energy_external(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = 0;
 
@@ -586,6 +573,6 @@ Float LinearCapR::energy_external(const int i, const int j) const{
 
 
 // calc energy where bases in external [i, j] are unpaired
-Float LinearCapR::energy_external_unpaired(const int i, const int j) const{
+Float LinCapR::energy_external_unpaired(const int i, const int j) const{
 	return 0;
 }

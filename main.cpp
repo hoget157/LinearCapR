@@ -1,15 +1,14 @@
-#include "LinearCapR.hpp"
+#include "LinCapR.hpp"
 #include "FileReader.hpp"
-#include "debug.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <cstring>
 
-// Usage: ./LinearCapR <input_file> <output_file> <beam_size> [options]
+// Usage: ./LinCapR <input_file> <output_file> <beam_size> [options]
 int main(int argc, char **argv){
 	if(argc < 4){
-		cout << "Usage: ./LinearCapR <input_file> <output_file> <beam_size> [options]" << endl;
+		cout << "Usage: ./LinCapR <input_file> <output_file> <beam_size> [options]" << endl;
 		return 1;
 	}
 
@@ -42,9 +41,9 @@ int main(int argc, char **argv){
 	}
 	ofs.close();
 
-	// run LinearCapR
+	// run LinCapR
 	const int s = seq.size();
-	LinearCapR lcr(beam_size);
+	LinCapR lcr(beam_size);
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);

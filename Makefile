@@ -1,4 +1,4 @@
-PROG := LinearCapR
+PROG := LinCapR
 OBJDIR := ./temp
 SRCS := $(wildcard *.cpp)
 OBJS := $(addprefix $(OBJDIR)/, $(SRCS:%.cpp=%.o))
