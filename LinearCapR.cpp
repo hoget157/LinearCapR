@@ -448,7 +448,7 @@ int LinearCapR::special_hairpin(const int i, const int j) const{
 	else if(d == 6) loops_seq = Hexaloops;
 	else return -1;
 
-	char *sp = strstr(loops_seq, seq.substr(i, d + 2).c_str());
+	const char *sp = strstr(loops_seq, seq.substr(i, d + 2).c_str());
 	return (sp ? (sp - loops_seq) / (d + 3) : -1);
 #endif
 }
