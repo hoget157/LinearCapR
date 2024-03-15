@@ -54,12 +54,14 @@ Float LinCapR::prune(Map<int, Float> &states) const{
 		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
 		if(new_score <= threshold){
 			// unorderd_map
-			it = states.erase(it);
+			// it = states.erase(it);
 			// google hash
-			// states.erase(it++);
+			DUMP(i, score);
+			states.erase(it++);
 		}
 		else it++;
 	}
+	DUMP(states);
 	// google hash
 	// states.resize(0);
 
@@ -161,12 +163,12 @@ void LinCapR::initialize(const string &seq){
 		alphas[i]->resize(seq_n);
 		betas[i]->resize(seq_n);
 		// google hash
-		// for(int j = 0; j < seq_n; j++){
-		// 	alphas[i]->at(j).set_empty_key(-1);
-		// 	alphas[i]->at(j).set_deleted_key(-2);
-		// 	betas[i]->at(j).set_empty_key(-1);
-		// 	betas[i]->at(j).set_deleted_key(-2);
-		// }
+		for(int j = 0; j < seq_n; j++){
+			alphas[i]->at(j).set_empty_key(-1);
+			alphas[i]->at(j).set_deleted_key(-2);
+			betas[i]->at(j).set_empty_key(-1);
+			betas[i]->at(j).set_deleted_key(-2);
+		}
 	}
 
 	// prepare prob vectors

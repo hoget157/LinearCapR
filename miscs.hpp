@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <unordered_map>
-// #include <google/dense_hash_map>
+#include <google/dense_hash_map>
 
 using namespace std;
 
@@ -13,8 +13,8 @@ using Float = double;
 // using Float = long double;
 
 template<class T1, class T2>
-using Map = unordered_map<T1, T2>;
-// using Map = google::dense_hash_map<T1, T2>;
+// using Map = unordered_map<T1, T2>;
+using Map = google::dense_hash_map<T1, T2>;
 using Table = vector<Map<int, Float>>;
 
 
