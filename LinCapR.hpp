@@ -34,7 +34,7 @@ private:
 	// functions for pruning
 	int quickselect_partition(vector<Float>&, const int, const int) const;
 	Float quickselect(vector<Float>&, const int, const int, const int) const;
-	Float prune(unordered_map<int, Float>&) const;
+	Float prune(Map<int, Float>&) const;
 
 	// executable functions
 	void initialize(const string &s);

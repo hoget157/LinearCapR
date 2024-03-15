@@ -1,18 +1,18 @@
 #pragma once
 
+#include "miscs.hpp"
+
 #include <iostream>
-#include <vector>
 #include <chrono>
 #include <iomanip>
 #include <cmath>
-#include <unordered_map>
 
 using namespace std;
 
 
 // dump vectors
 template<class T>
-ostream &operator<<(ostream &os,const vector<T> &v){
+ostream &operator<<(ostream &os, const vector<T> &v){
 	// os << fixed;
 	for(int i = 0;i < (int)v.size();i++) os << (i ? "," : "[") /*<< setprecision(15)*/ << v[i];
 	os << "]";
@@ -22,7 +22,7 @@ ostream &operator<<(ostream &os,const vector<T> &v){
 
 // dump unordered_map
 template<class T1, class T2>
-ostream &operator<<(ostream &os,const unordered_map<T1, T2> &m){
+ostream &operator<<(ostream &os, const Map<T1, T2> &m){
 	os << "[";
 	for(const auto [x, y] : m) os << "(" << x << ", " << y /** -kT*/ << "), ";
 	os << "]";

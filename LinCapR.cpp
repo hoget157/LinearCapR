@@ -1,5 +1,6 @@
 #include "LinCapR.hpp"
 #include "energy_param.hpp"
+#include "debug.hpp"
 // #include "legacy_energy_param.hpp"
 
 #include <fstream>
@@ -33,7 +34,7 @@ Float LinCapR::quickselect(vector<Float> &scores, const int lower, const int upp
 
 
 // prune top-k states
-Float LinCapR::prune(unordered_map<int, Float> &states) const{
+Float LinCapR::prune(Map<int, Float> &states) const{
 	if(beam_size == 0 || (int)states.size() <= beam_size) return -INF;
 	
 	// extract scores
@@ -51,9 +52,16 @@ Float LinCapR::prune(unordered_map<int, Float> &states) const{
 	for(auto it = states.begin(); it != states.end();){
 		const auto [i, score] = *it;
 		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
-		if(new_score <= threshold) it = states.erase(it);
+		if(new_score <= threshold){
+			// unorderd_map
+			it = states.erase(it);
+			// google hash
+			// states.erase(it++);
+		}
 		else it++;
 	}
+	// google hash
+	// states.resize(0);
 
 	return threshold;
 }
@@ -152,6 +160,13 @@ void LinCapR::initialize(const string &seq){
 	for(int i = 0; i < NTABLES; i++){
 		alphas[i]->resize(seq_n);
 		betas[i]->resize(seq_n);
+		// google hash
+		// for(int j = 0; j < seq_n; j++){
+		// 	alphas[i]->at(j).set_empty_key(-1);
+		// 	alphas[i]->at(j).set_deleted_key(-2);
+		// 	betas[i]->at(j).set_empty_key(-1);
+		// 	betas[i]->at(j).set_deleted_key(-2);
+		// }
 	}
 
 	// prepare prob vectors

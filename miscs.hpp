@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <unordered_map>
+// #include <google/dense_hash_map>
 
 using namespace std;
 
@@ -11,7 +12,10 @@ using namespace std;
 using Float = double;
 // using Float = long double;
 
-using Table = vector<unordered_map<int, Float>>;
+template<class T1, class T2>
+using Map = unordered_map<T1, T2>;
+// using Map = google::dense_hash_map<T1, T2>;
+using Table = vector<Map<int, Float>>;
 
 
 /** The number of distinguishable base pairs */
@@ -104,8 +108,8 @@ inline Float update_sum(vector<Float> &v, const int i, const Float score){
 
 
 // returns t[i, j] if exists, else default value
-inline Float get_value(const Table &t, const int i, const int j, const Float default_value = -INF){
-	return (t[j].count(i) ? t[j].at(i) : default_value);
+inline Float get_value(Table &t, const int i, const int j, const Float default_value = -INF){
+	return (t[j].count(i) ? t[j][i] : default_value);
 }
 
 
