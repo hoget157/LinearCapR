@@ -9,6 +9,9 @@
 int main(int argc, char **argv){
 	if(argc < 4){
 		cout << "Usage: ./LinCapR <input_file> <output_file> <beam_size> [options]" << endl;
+		cout << "Options:" << endl;
+		cout << "  -e                 Output ensemble energy" << endl;
+		cout << "  --energy <model>   Energy model: turner2004 (default) or turner1999" << endl;
 		return 1;
 	}
 
@@ -19,9 +22,34 @@ int main(int argc, char **argv){
 
 	// get options
 	bool output_energy = false;
+	energy::Model energy_model = energy::Model::Turner2004;
 	for(int i = 4; i < argc; i++){
 		if(strcmp(argv[i], "-e") == 0){
 			output_energy = true;
+		}else if(strcmp(argv[i], "--energy") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
+				return 1;
+			}
+			const char *choice = argv[++i];
+			if(strcmp(choice, "turner2004") == 0){
+				energy_model = energy::Model::Turner2004;
+			}else if(strcmp(choice, "turner1999") == 0){
+				energy_model = energy::Model::Turner1999;
+			}else{
+				cout << "Error: invalid energy model: " << choice << endl;
+				return 1;
+			}
+		}else if(strncmp(argv[i], "--energy=", 9) == 0){
+			const char *choice = argv[i] + 9;
+			if(strcmp(choice, "turner2004") == 0){
+				energy_model = energy::Model::Turner2004;
+			}else if(strcmp(choice, "turner1999") == 0){
+				energy_model = energy::Model::Turner1999;
+			}else{
+				cout << "Error: invalid energy model: " << choice << endl;
+				return 1;
+			}
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
@@ -43,7 +71,7 @@ int main(int argc, char **argv){
 
 	// run LinCapR
 	const int s = seq.size();
-	LinCapR lcr(beam_size);
+	LinCapR lcr(beam_size, energy_model);
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);
