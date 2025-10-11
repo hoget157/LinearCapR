@@ -4,6 +4,14 @@ extracted from ViennaRNA v2.5.1
 
 #pragma once
 
+#ifndef ENERGY_PARAM_NAMESPACE_BEGIN
+#define ENERGY_PARAM_NAMESPACE_BEGIN
+#define ENERGY_PARAM_NAMESPACE_END
+#define ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#endif
+
+ENERGY_PARAM_NAMESPACE_BEGIN
+
 #include "miscs.hpp"
 
 // constants
@@ -427,3 +435,11 @@ const char Hexaloops[361] =
 const int Hexaloop37[40] = {   280,   360,   290,   180};
 
 #include "intloops.hpp"
+
+ENERGY_PARAM_NAMESPACE_END
+
+#ifdef ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#undef ENERGY_PARAM_NAMESPACE_BEGIN
+#undef ENERGY_PARAM_NAMESPACE_END
+#undef ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#endif
