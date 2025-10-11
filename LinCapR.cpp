@@ -440,19 +440,20 @@ void LinCapR::calc_profile(){
 
 // returns index if loop [i, j] is special hairpin, otherwise -1
 int LinCapR::special_hairpin(const int i, const int j) const{
-#ifdef LEGACY_ENERGY
-	return -1;
-#else
+	if(!params.has_special_hairpins) return -1;
+
 	const int d = j - i - 1;
-	const char *loops_seq;
-	if(d == 3) loops_seq = Triloops;
-	else if(d == 4) loops_seq = Tetraloops;
-	else if(d == 6) loops_seq = Hexaloops;
+	const char *loops_seq = nullptr;
+	if(d == 3) loops_seq = params.Triloops;
+	else if(d == 4) loops_seq = params.Tetraloops;
+	else if(d == 6) loops_seq = params.Hexaloops;
 	else return -1;
 
-	const char *sp = strstr(loops_seq, seq.substr(i, d + 2).c_str());
+	if(!loops_seq) return -1;
+
+	const string loop = seq.substr(i, d + 2);
+	const char *sp = strstr(loops_seq, loop.c_str());
 	return (sp ? (sp - loops_seq) / (d + 3) : -1);
-#endif
 }
 
 
@@ -461,23 +462,21 @@ Float LinCapR::energy_hairpin(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	const int d = j - i - 1;
 	
-#ifndef LEGACY_ENERGY
 	// check special hairpin
 	const int index = special_hairpin(i, j);
 	if(index != -1){
-		if(d == 3) return Triloop37[index];
-		if(d == 4) return Tetraloop37[index];
-		if(d == 6) return Hexaloop37[index];
+		if(d == 3 && params.Triloop37) return params.Triloop37[index];
+		if(d == 4 && params.Tetraloop37) return params.Tetraloop37[index];
+		if(d == 6 && params.Hexaloop37) return params.Hexaloop37[index];
 	}
-#endif
 
 	// initiation
-	Float energy = (d <= MAXLOOP ? hairpin37[d] : hairpin37[30] + lxc37 * log(d / 30.));
+	Float energy = (d <= MAXLOOP ? params.hairpin37[d] : params.hairpin37[30] + params.lxc37 * log(d / 30.));
 	
 	if(d != 3){
-		energy += mismatchH37[type][seq_int[i + 1]][seq_int[j - 1]];
+		energy += params.mismatchH37[type][seq_int[i + 1]][seq_int[j - 1]];
 	}else if(type > 2){
-		energy += TerminalAU37;
+		energy += params.TerminalAU37;
 	}
 	return energy;
 }
@@ -495,39 +494,39 @@ Float LinCapR::energy_loop(const int i, const int j, const int p, const int q) c
 
 	if(dmax == 0){
 		// stack
-		return stack37[type1][type2];
+		return params.stack37[type1][type2];
 	}
 
 	if(dmin == 0){
 		// bulge
-		Float energy = (d <= MAXLOOP ? bulge37[d] : bulge37[30] + lxc37 * log(d / 30.));
+		Float energy = (d <= MAXLOOP ? params.bulge37[d] : params.bulge37[30] + params.lxc37 * log(d / 30.));
 
-		if(dmax == 1) energy += stack37[type1][type2];
+		if(dmax == 1) energy += params.stack37[type1][type2];
 		else{
-			if(type1 > 2) energy += TerminalAU37;
-			if(type2 > 2) energy += TerminalAU37;
+			if(type1 > 2) energy += params.TerminalAU37;
+			if(type2 > 2) energy += params.TerminalAU37;
 		}
 		return energy;
 	}
 
 	// internal
 	// specieal internal loops
-	if(d1 == 1 && d2 == 1) return int11_37[type1][type2][si][sj];
-	if(d1 == 1 && d2 == 2) return int21_37[type1][type2][si][sq][sj];
-	if(d1 == 2 && d2 == 1) return int21_37[type2][type1][sq][si][sp];
-	if(d1 == 2 && d2 == 2) return int22_37[type1][type2][si][sp][sq][sj];
+	if(d1 == 1 && d2 == 1) return params.int11_37[type1][type2][si][sj];
+	if(d1 == 1 && d2 == 2) return params.int21_37[type1][type2][si][sq][sj];
+	if(d1 == 2 && d2 == 1) return params.int21_37[type2][type1][sq][si][sp];
+	if(d1 == 2 && d2 == 2) return params.int22_37[type1][type2][si][sp][sq][sj];
 
 	// generic internal loop
-	Float energy =  (d <= MAXLOOP ? internal_loop37[d] : internal_loop37[30] + lxc37 * log(d / 30.));
-	energy += min(MAX_NINIO, ninio37 * (dmax - dmin));
+	Float energy =  (d <= MAXLOOP ? params.internal_loop37[d] : params.internal_loop37[30] + params.lxc37 * log(d / 30.));
+	energy += min(params.MAX_NINIO, params.ninio37 * (dmax - dmin));
 	
 	// mismatch: different for sizes
 	if(dmin == 1){ // 1xn
-		energy += mismatch1nI37[type1][si][sj] + mismatch1nI37[type2][sq][sp];
+		energy += params.mismatch1nI37[type1][si][sj] + params.mismatch1nI37[type2][sq][sp];
 	}else if(dmin == 2 && dmax == 3){ // 2x3
-		energy += mismatch23I37[type1][si][sj] + mismatch23I37[type2][sq][sp];
+		energy += params.mismatch23I37[type1][si][sj] + params.mismatch23I37[type2][sq][sp];
 	}else{ // others
-		energy += mismatchI37[type1][si][sj] + mismatchI37[type2][sq][sp];
+		energy += params.mismatchI37[type1][si][sj] + params.mismatchI37[type2][sq][sp];
 	}
 
 	return energy;
