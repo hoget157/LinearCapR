@@ -1,17 +1,19 @@
 #pragma once
 
 #include "miscs.hpp"
+#include "energy_model.hpp"
 
 #include <string>
 
 class LinCapR{
 public:
-	LinCapR(int beam_size) : beam_size(beam_size){}
+	LinCapR(int beam_size, energy::Model model = energy::Model::Turner2004);
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
 	Float get_energy_ensemble() const;
 private:
+	const energy::Params &params;
 	const int beam_size;
 	
 	string seq;
