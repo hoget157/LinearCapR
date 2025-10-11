@@ -572,16 +572,17 @@ Float LinCapR::energy_external(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
 	Float energy = 0;
 
-#ifdef LEGACY_ENERGY
-	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
-	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-#else
-	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchExt37[type][seq_int[i - 1]][seq_int[j + 1]];
-	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
-	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-#endif
+	const bool has_left = (i - 1) >= 0;
+	const bool has_right = (j + 1) < seq_n;
 
-	if(type > 2) energy += TerminalAU37;
+	if(params.allow_mismatch_external && params.mismatchExt37 && has_left && has_right){
+		energy += params.mismatchExt37[type][seq_int[i - 1]][seq_int[j + 1]];
+	}else{
+		if(has_left) energy += params.dangle5_37[type][seq_int[i - 1]];
+		if(has_right) energy += params.dangle3_37[type][seq_int[j + 1]];
+	}
+
+	if(type > 2) energy += params.TerminalAU37;
 
 	return energy;
 }
