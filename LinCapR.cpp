@@ -1,11 +1,11 @@
 #include "LinCapR.hpp"
-#include "energy_param.hpp"
-#include "debug.hpp"
-// #include "legacy_energy_param.hpp"
 
 #include <fstream>
 #include <algorithm>
 #include <cstring>
+
+LinCapR::LinCapR(int beam_size, energy::Model model)
+	: params(energy::get_params(model)), beam_size(beam_size){}
 
 
 // partite [lower, upper) and small scores are in [lower, split]
