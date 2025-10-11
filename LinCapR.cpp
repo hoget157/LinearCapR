@@ -511,10 +511,10 @@ Float LinCapR::energy_loop(const int i, const int j, const int p, const int q) c
 
 	// internal
 	// specieal internal loops
-	if(d1 == 1 && d2 == 1) return params.int11_37[type1][type2][si][sj];
-	if(d1 == 1 && d2 == 2) return params.int21_37[type1][type2][si][sq][sj];
-	if(d1 == 2 && d2 == 1) return params.int21_37[type2][type1][sq][si][sp];
-	if(d1 == 2 && d2 == 2) return params.int22_37[type1][type2][si][sp][sq][sj];
+	if(d1 == 1 && d2 == 1) return (*params.int11_37)[type1][type2][si][sj];
+	if(d1 == 1 && d2 == 2) return (*params.int21_37)[type1][type2][si][sq][sj];
+	if(d1 == 2 && d2 == 1) return (*params.int21_37)[type2][type1][sq][si][sp];
+	if(d1 == 2 && d2 == 2) return (*params.int22_37)[type1][type2][si][sp][sq][sj];
 
 	// generic internal loop
 	Float energy =  (d <= MAXLOOP ? params.internal_loop37[d] : params.internal_loop37[30] + params.lxc37 * log(d / 30.));
