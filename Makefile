@@ -10,7 +10,7 @@ OBJS = $(addprefix $(OBJDIR)\, $(SRCS:%.cpp=%.o))
 DEPS = $(addprefix $(OBJDIR)\, $(SRCS:%.cpp=%.d))
 endif
 
-CC := g++
+CC := clang++ # or g++
 CCFLAGS := -O3 -std=c++17 -Wall #-pg -g
 # INCLUDEPATH := -I/usr/local/include
 # LIBPATH := -L/usr/local/lib
