@@ -142,18 +142,17 @@ constexpr Params make_turner1999(){
 	};
 }
 
-constexpr Params turner2004_params = make_turner2004();
-constexpr Params turner1999_params = make_turner1999();
-
 } // namespace detail
 
 inline const Params& get_params(Model model){
+	static const Params turner2004_params = detail::make_turner2004();
+	static const Params turner1999_params = detail::make_turner1999();
 	switch(model){
 	case Model::Turner1999:
-		return detail::turner1999_params;
+		return turner1999_params;
 	case Model::Turner2004:
 	default:
-		return detail::turner2004_params;
+		return turner2004_params;
 	}
 }
 
