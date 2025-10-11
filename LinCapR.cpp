@@ -116,7 +116,7 @@ void LinCapR::clear(){
 
 // returns free energy of ensemble in kcal/mol
 Float LinCapR::get_energy_ensemble() const{
-	return (alpha_O[seq_n - 1] * -(temperature + K0) * GASCONST) / 1000;
+	return (alpha_O[seq_n - 1] * -(params.temperature + params.k0) * params.gas_constant) / 1000;
 }
 
 
@@ -200,24 +200,24 @@ void LinCapR::calc_inside(){
 		for(const auto [i, score] : alpha_S[j]){
 			// S -> S
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				update_sum(alpha_S, i - 1, j + 1, score - energy_loop(i - 1, j + 1, i, j) / kT);
+				update_sum(alpha_S, i - 1, j + 1, score - energy_loop(i - 1, j + 1, i, j) / params.kT);
 			}
 			
 			// M2 -> S
 			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
-				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
+				update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / params.kT);
 			}
 
 			// SE -> S: p..i..j..q, [p - 1, q] can be pair
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
 				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
 					if((p == i && q == j + 1)) continue;
-					update_sum(alpha_SE, p, q - 1, score - energy_loop(p - 1, q, i, j) / kT);
+					update_sum(alpha_SE, p, q - 1, score - energy_loop(p - 1, q, i, j) / params.kT);
 				}
 			}
 
 			// O -> O + S
-			update_sum(alpha_O, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + score - energy_external(i, j) / kT);
+			update_sum(alpha_O, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + score - energy_external(i, j) / params.kT);
 		}
 
 		// M2
@@ -254,7 +254,7 @@ void LinCapR::calc_inside(){
 		for(const auto [i, score] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				update_sum(alpha_SE, i, j, score - energy_multi_closing(i - 1, j + 1) / kT);
+				update_sum(alpha_SE, i, j, score - energy_multi_closing(i - 1, j + 1) / params.kT);
 			}
 		}
 
@@ -262,7 +262,7 @@ void LinCapR::calc_inside(){
 		for(int n = TURN; n <= MAXLOOP; n++){
 			const int i = j - n + 1;
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				update_sum(alpha_SE, i, j, -energy_hairpin(i - 1, j + 1) / kT);
+				update_sum(alpha_SE, i, j, -energy_hairpin(i - 1, j + 1) / params.kT);
 			}
 		}
 
@@ -277,7 +277,7 @@ void LinCapR::calc_inside(){
 
 		// O -> O
 		if(j + 1 < seq_n){
-			update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / kT);
+			update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / params.kT);
 		}
 	}
 }
@@ -288,11 +288,11 @@ void LinCapR::calc_outside(){
 	for(int j = seq_n - 1; j >= 0; j--){
 		// O
 		// O -> O
-		update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external_unpaired(j + 1, j + 1) / kT);
+		update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external_unpaired(j + 1, j + 1) / params.kT);
 		
 		// O -> O + S
 		for(const auto [i, score] : alpha_S[j]){
-			update_sum(beta_O, i, score + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / kT);
+			update_sum(beta_O, i, score + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / params.kT);
 		}
 
 		// SE
@@ -307,7 +307,7 @@ void LinCapR::calc_outside(){
 		for(const auto [i, _] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n){
-				update_sum(beta_M, i, j, get_value(beta_SE, i, j) - energy_multi_closing(i - 1, j + 1) / kT);
+				update_sum(beta_M, i, j, get_value(beta_SE, i, j) - energy_multi_closing(i - 1, j + 1) / params.kT);
 			}
 		}
 
@@ -338,24 +338,24 @@ void LinCapR::calc_outside(){
 		// S
 		for(const auto [i, _] : alpha_S[j]){
 			// O -> O + S
-			update_sum(beta_S, i, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / kT);
+			update_sum(beta_S, i, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / params.kT);
 
 			// SE -> S
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
 				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
 					if((p == i && q == j + 1)) continue;
-					update_sum(beta_S, i, j, get_value(beta_SE, p, q - 1) - energy_loop(p - 1, q, i, j) / kT);
+					update_sum(beta_S, i, j, get_value(beta_SE, p, q - 1) - energy_loop(p - 1, q, i, j) / params.kT);
 				}
 			}
 
 			// S -> S
 			if(i - 1 >= 0 && j + 1 < seq_n){
-				update_sum(beta_S, i, j, get_value(beta_S, i - 1, j + 1) - energy_loop(i - 1, j + 1, i, j) / kT);
+				update_sum(beta_S, i, j, get_value(beta_S, i - 1, j + 1) - energy_loop(i - 1, j + 1, i, j) / params.kT);
 			}
 			
 			// M2 -> S
 			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
-				update_sum(beta_S, i, j, get_value(beta_M2, i, j + n) - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / kT);
+				update_sum(beta_S, i, j, get_value(beta_M2, i, j + n) - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / params.kT);
 			}
 		}
 	}
@@ -369,13 +369,13 @@ void LinCapR::calc_profile(){
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [j, score] : beta_SE[k]){
 			// H
-			add_range(prob_H, j, k, exp(score - energy_hairpin(j - 1, k + 1) / kT - logZ));
+			add_range(prob_H, j, k, exp(score - energy_hairpin(j - 1, k + 1) / params.kT - logZ));
 
 			// B, I
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
 				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
 					if((p == j && q == k) || !contains(alpha_S, p, q)) continue;
-					const Float new_score = exp(score + alpha_S[q][p] - energy_loop(j - 1, k + 1, p, q) / kT - logZ);
+					const Float new_score = exp(score + alpha_S[q][p] - energy_loop(j - 1, k + 1, p, q) / params.kT - logZ);
 					add_range((q == k ? prob_B : prob_I), j, p - 1, new_score);
 					add_range((p == j ? prob_B : prob_I), q + 1, k, new_score);
 				}
@@ -391,7 +391,7 @@ void LinCapR::calc_profile(){
 		for(const auto [p, score] : alpha_MB[k]){
 			for(int j = p - 1; j >= max(0, p - MAXLOOP); j--){
 				if(!contains(beta_M, j, k)) continue;
-				const Float new_score = exp(score + beta_M[k][j] - energy_multi_unpaired(j, p - 1) / kT - logZ);
+				const Float new_score = exp(score + beta_M[k][j] - energy_multi_unpaired(j, p - 1) / params.kT - logZ);
 				add_range(prob_M, j, p - 1, new_score);
 			}
 		}
@@ -400,7 +400,7 @@ void LinCapR::calc_profile(){
 		for(const auto [j, score] : alpha_S[q]){
 			for(int k = q + 1; k <= min(seq_n - 1, q + MAXLOOP); k++){
 				if(!contains(beta_M2, j, k)) continue;
-				const Float new_score = exp(score + beta_M2[k][j] - (energy_multi_bif(j, q) + energy_multi_unpaired(q + 1, k)) / kT - logZ);
+				const Float new_score = exp(score + beta_M2[k][j] - (energy_multi_bif(j, q) + energy_multi_unpaired(q + 1, k)) / params.kT - logZ);
 				add_range(prob_M, q + 1, k, new_score);
 			}
 		}
