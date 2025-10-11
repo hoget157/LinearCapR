@@ -61,6 +61,7 @@ struct Params{
 
 namespace detail{
 
+// 実行時に作成する constexpr にしたため、かなり安全
 constexpr Params make_turner2004(){
 	return {
 		.temperature = turner2004::temperature,
