@@ -542,25 +542,26 @@ Float LinCapR::energy_multi_unpaired(const int i, const int j) const{
 // calc energy of multiloop [i, j]
 Float LinCapR::energy_multi_closing(const int i, const int j) const{
 	// we look clockwise, so i, j are swapped
-	return energy_multi_bif(j, i) + ML_closing37;
+	return energy_multi_bif(j, i) + params.ML_closing37;
 }
 
 
 // calc energy of bifurcation [i, j] in a multiloop
 Float LinCapR::energy_multi_bif(const int i, const int j) const{
 	const int type = BP_pair[seq_int[i]][seq_int[j]];
-	Float energy = ML_intern37;
+	Float energy = params.ML_intern37;
 
-#ifdef LEGACY_ENERGY
-	if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
-	if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-#else
-	if(i - 1 >= 0 && j + 1 < seq_n) energy += mismatchM37[type][seq_int[i - 1]][seq_int[j + 1]];
-	else if(i - 1 >= 0) energy += dangle5_37[type][seq_int[i - 1]];
-	else if(j + 1 < seq_n) energy += dangle3_37[type][seq_int[j + 1]];
-#endif
+	const bool has_left = (i - 1) >= 0;
+	const bool has_right = (j + 1) < seq_n;
 
-	if(type > 2) energy += TerminalAU37;
+	if(params.allow_mismatch_multi && params.mismatchM37 && has_left && has_right){
+		energy += params.mismatchM37[type][seq_int[i - 1]][seq_int[j + 1]];
+	}else{
+		if(has_left) energy += params.dangle5_37[type][seq_int[i - 1]];
+		if(has_right) energy += params.dangle3_37[type][seq_int[j + 1]];
+	}
+
+	if(type > 2) energy += params.TerminalAU37;
 
 	return energy;
 }
