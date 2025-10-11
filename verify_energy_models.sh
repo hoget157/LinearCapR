@@ -16,11 +16,11 @@ INPUT_DEFAULT="test.fa"
 INPUT_REL="${1:-$INPUT_DEFAULT}"
 BEAM_SIZE="${2:-100}"
 
-INPUT_PATH="$(python - <<'PY'
+INPUT_PATH="$(python - "$INPUT_REL" <<'PY'
 import os, sys
 print(os.path.abspath(sys.argv[1]))
 PY
-"${INPUT_REL}")"
+)"
 
 if [[ ! -f "$INPUT_PATH" ]]; then
 	echo "Error: input file '$INPUT_PATH' not found." >&2
