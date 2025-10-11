@@ -21,6 +21,10 @@ enum class Model {
 	Turner1999
 };
 
+using Int11Array = decltype(turner2004::int11_37);
+using Int21Array = decltype(turner2004::int21_37);
+using Int22Array = decltype(turner2004::int22_37);
+
 struct Params{
 	double temperature;
 	double gas_constant;
@@ -45,9 +49,9 @@ struct Params{
 	const int (*mismatchExt37)[5][5];
 	const int (*dangle5_37)[5];
 	const int (*dangle3_37)[5];
-	const int (*int11_37)[NBPAIRS+1][5][5];
-	const int (*int21_37)[NBPAIRS+1][5][5][5];
-	const int (*int22_37)[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
+	const Int11Array *int11_37;
+	const Int21Array *int21_37;
+	const Int22Array *int22_37;
 	const char *Triloops;
 	const int *Triloop37;
 	const char *Tetraloops;
@@ -87,9 +91,9 @@ constexpr Params make_turner2004(){
 		.mismatchExt37 = turner2004::mismatchExt37,
 		.dangle5_37 = turner2004::dangle5_37,
 		.dangle3_37 = turner2004::dangle3_37,
-		.int11_37 = turner2004::int11_37,
-		.int21_37 = turner2004::int21_37,
-		.int22_37 = turner2004::int22_37,
+		.int11_37 = &turner2004::int11_37,
+		.int21_37 = &turner2004::int21_37,
+		.int22_37 = &turner2004::int22_37,
 		.Triloops = turner2004::Triloops,
 		.Triloop37 = turner2004::Triloop37,
 		.Tetraloops = turner2004::Tetraloops,
@@ -127,9 +131,9 @@ constexpr Params make_turner1999(){
 		.mismatchExt37 = nullptr,
 		.dangle5_37 = turner1999::dangle5_37,
 		.dangle3_37 = turner1999::dangle3_37,
-		.int11_37 = turner1999::int11_37,
-		.int21_37 = turner1999::int21_37,
-		.int22_37 = turner1999::int22_37,
+		.int11_37 = &turner1999::int11_37,
+		.int21_37 = &turner1999::int21_37,
+		.int22_37 = &turner1999::int22_37,
 		.Triloops = nullptr,
 		.Triloop37 = nullptr,
 		.Tetraloops = nullptr,
