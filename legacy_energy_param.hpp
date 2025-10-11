@@ -4,7 +4,13 @@ extracted from CapR
 
 #pragma once
 
-#define LEGACY_ENERGY
+#ifndef ENERGY_PARAM_NAMESPACE_BEGIN
+#define ENERGY_PARAM_NAMESPACE_BEGIN
+#define ENERGY_PARAM_NAMESPACE_END
+#define ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#endif
+
+ENERGY_PARAM_NAMESPACE_BEGIN
 
 #include "miscs.hpp"
 
@@ -99,8 +105,8 @@ const int mismatchI37[NBPAIRS][5][5] =
    {   0,   70,   70,   70,    0}},/* U@  UA  UC  UG  UU */
 };
 
-extern const int (*mismatch1nI37)[5][5];
-extern const int (*mismatch23I37)[5][5];
+inline const int (*const mismatch1nI37)[5][5] = mismatchI37;
+inline const int (*const mismatch23I37)[5][5] = mismatchI37;
 
  const int mismatchH37[NBPAIRS][5][5] =
 { /* @@ */
@@ -171,3 +177,11 @@ const int dangle3_37[NBPAIRS+1][5] =
 };
 
 #include "legacy_intloops.hpp"
+
+ENERGY_PARAM_NAMESPACE_END
+
+#ifdef ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#undef ENERGY_PARAM_NAMESPACE_BEGIN
+#undef ENERGY_PARAM_NAMESPACE_END
+#undef ENERGY_PARAM_NAMESPACE_INTERNAL_GUARD
+#endif
