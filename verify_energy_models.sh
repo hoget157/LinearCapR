@@ -99,9 +99,9 @@ COMPARE_PY="$SCRIPT_DIR/compare_profiles.py"
 
 if [[ -x "$COMPARE_PY" ]]; then
 	echo "Running detailed comparison (turner2004 vs main)..."
-	"$COMPARE_PY" "$DEV_T2004_OUT" "$MAIN_OUT"
+	/Users/ootagakitakumi/miniconda3/bin/python "$COMPARE_PY" "$DEV_T2004_OUT" "$MAIN_OUT"
 	echo "Running detailed comparison (turner1999 vs legacy)..."
-	"$COMPARE_PY" "$DEV_T1999_OUT" "$LEGACY_OUT"
+	/Users/ootagakitakumi/miniconda3/bin/python "$COMPARE_PY" "$DEV_T1999_OUT" "$LEGACY_OUT"
 else
 	echo "Warning: compare_profiles.py not found or not executable; skipping detailed diff."
 fi
