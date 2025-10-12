@@ -87,7 +87,7 @@ run_compare(){
 	local file_b="$3"
 
 	echo "Comparing $description..."
-	if "$COMPARE_PY" "$file_a" "$file_b"; then
+	if /Users/ootagakitakumi/miniconda3/bin/python "$COMPARE_PY" "$file_a" "$file_b"; then
 		echo "✔ $description within tolerance."
 	else
 		echo "✖ $description differs beyond tolerance." >&2
