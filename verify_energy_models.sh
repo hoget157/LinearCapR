@@ -44,17 +44,20 @@ trap cleanup EXIT
 git -C "$ROOT" worktree add --quiet "$TMP_ROOT/main" main
 git -C "$ROOT" worktree add --quiet "$TMP_ROOT/legacy" legacy
 
-echo "Building develop (current) branch..."
-make clean -C "$ROOT"
-make -C "$ROOT"
+MAKE_CMD=${MAKE:-make}
+COMPILER=${CC:-g++}
 
-echo "Building main branch in worktree..."
-make clean -C "$TMP_ROOT/main"
-make -C "$TMP_ROOT/main"
+build_branch(){
+	local dir="$1"
+	local label="$2"
+	echo "Building ${label} branch..."
+	("$MAKE_CMD" -C "$dir" clean CC="$COMPILER" >/dev/null 2>&1 || true)
+	"$MAKE_CMD" -C "$dir" CC="$COMPILER"
+}
 
-echo "Building legacy branch in worktree..."
-make clean -C "$TMP_ROOT/legacy"
-make -C "$TMP_ROOT/legacy"
+build_branch "$ROOT" "develop (current)"
+build_branch "$TMP_ROOT/main" "main"
+build_branch "$TMP_ROOT/legacy" "legacy"
 
 DEV_T2004_OUT="$TMP_ROOT/develop_turner2004.out"
 DEV_T1999_OUT="$TMP_ROOT/develop_turner1999.out"
