@@ -45,12 +45,15 @@ git -C "$ROOT" worktree add --quiet "$TMP_ROOT/main" main
 git -C "$ROOT" worktree add --quiet "$TMP_ROOT/legacy" legacy
 
 echo "Building develop (current) branch..."
+make clean -C "$ROOT"
 make -C "$ROOT"
 
 echo "Building main branch in worktree..."
+make clean -C "$TMP_ROOT/main"
 make -C "$TMP_ROOT/main"
 
 echo "Building legacy branch in worktree..."
+make clean -C "$TMP_ROOT/legacy"
 make -C "$TMP_ROOT/legacy"
 
 DEV_T2004_OUT="$TMP_ROOT/develop_turner2004.out"
