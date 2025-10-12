@@ -45,7 +45,7 @@ git -C "$ROOT" worktree add --quiet "$TMP_ROOT/main" main
 git -C "$ROOT" worktree add --quiet "$TMP_ROOT/legacy" legacy
 
 MAKE_CMD=${MAKE:-make}
-COMPILER=${CC:-g++}
+COMPILER=${CC:-clang++}
 
 build_branch(){
 	local dir="$1"
