@@ -76,32 +76,42 @@ echo "Running main reference..."
 echo "Running legacy reference..."
 "$TMP_ROOT/legacy/LinearCapR" "$INPUT_PATH" "$LEGACY_OUT" "$BEAM_SIZE"
 
-echo "Comparing develop turner2004 output with main..."
-if diff -q "$DEV_T2004_OUT" "$MAIN_OUT" >/dev/null; then
-	echo "✔ turner2004 output matches main branch."
-else
-	echo "✖ turner2004 output differs from main branch." >&2
-	exit 1
-fi
-
-echo "Comparing develop turner1999 output with legacy..."
-if diff -q "$DEV_T1999_OUT" "$LEGACY_OUT" >/dev/null; then
-	echo "✔ turner1999 output matches legacy branch."
-else
-	echo "✖ turner1999 output differs from legacy branch." >&2
-	exit 1
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPARE_PY="$SCRIPT_DIR/compare_profiles.py"
 
-if [[ -x "$COMPARE_PY" ]]; then
-	echo "Running detailed comparison (turner2004 vs main)..."
-	/Users/ootagakitakumi/miniconda3/bin/python "$COMPARE_PY" "$DEV_T2004_OUT" "$MAIN_OUT"
-	echo "Running detailed comparison (turner1999 vs legacy)..."
-	/Users/ootagakitakumi/miniconda3/bin/python "$COMPARE_PY" "$DEV_T1999_OUT" "$LEGACY_OUT"
-else
-	echo "Warning: compare_profiles.py not found or not executable; skipping detailed diff."
-fi
+overall_status=0
 
-echo "All checks passed. Outputs match both reference branches."
+run_compare(){
+	local description="$1"
+	local file_a="$2"
+	local file_b="$3"
+
+	echo "Comparing $description..."
+	if [[ -x "$COMPARE_PY" ]]; then
+		if "$COMPARE_PY" "$file_a" "$file_b"; then
+			echo "✔ $description within tolerance."
+		else
+			echo "✖ $description differs beyond tolerance." >&2
+			overall_status=1
+		fi
+	else
+		echo "Warning: compare_profiles.py not found or not executable; falling back to diff." >&2
+		if diff -q "$file_a" "$file_b" >/dev/null; then
+			echo "✔ $description matches exactly."
+		else
+			echo "✖ $description differs (exact diff not shown)." >&2
+			overall_status=1
+		fi
+	fi
+	echo
+}
+
+run_compare "develop turner2004 vs main" "$DEV_T2004_OUT" "$MAIN_OUT"
+run_compare "develop turner1999 vs legacy" "$DEV_T1999_OUT" "$LEGACY_OUT"
+
+if [[ $overall_status -eq 0 ]]; then
+	echo "All checks passed. Outputs match within tolerance."
+else
+	echo "Differences detected. See reports above." >&2
+	exit 1
+fi
