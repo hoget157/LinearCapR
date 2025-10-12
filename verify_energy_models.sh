@@ -87,21 +87,11 @@ run_compare(){
 	local file_b="$3"
 
 	echo "Comparing $description..."
-	if [[ -x "$COMPARE_PY" ]]; then
-		if "$COMPARE_PY" "$file_a" "$file_b"; then
-			echo "✔ $description within tolerance."
-		else
-			echo "✖ $description differs beyond tolerance." >&2
-			overall_status=1
-		fi
+	if "$COMPARE_PY" "$file_a" "$file_b"; then
+		echo "✔ $description within tolerance."
 	else
-		echo "Warning: compare_profiles.py not found or not executable; falling back to diff." >&2
-		if diff -q "$file_a" "$file_b" >/dev/null; then
-			echo "✔ $description matches exactly."
-		else
-			echo "✖ $description differs (exact diff not shown)." >&2
-			overall_status=1
-		fi
+		echo "✖ $description differs beyond tolerance." >&2
+		overall_status=1
 	fi
 	echo
 }
