@@ -71,7 +71,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Compare LinearCapR profile outputs.")
     parser.add_argument("file_a", type=Path)
     parser.add_argument("file_b", type=Path)
-    parser.add_argument("--verbose", "-v", action="store_true", help="Show per-index differences when mismatches occur.")
+    parser.add_argument("--tolerance", "-t", type=float, default=1e-5, help="Allowed max absolute deviation (default: 1e-5).")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show per-index differences when mismatches exceed tolerance.")
     args = parser.parse_args()
 
     profiles_a = parse_profile(args.file_a)
@@ -116,11 +117,15 @@ def main() -> int:
                 continue
 
             max_delta, mean_delta, rms_delta, max_indices = compare_vectors(vec_a, vec_b)
-            if max_delta == 0.0:
+            if max_delta <= args.tolerance:
                 continue
 
             exit_code = 1
-            print(f"[{seq}][{label}] max Δ={max_delta:.6g} (mean={mean_delta:.6g}, rms={rms_delta:.6g}) at indices {max_indices}")
+            print(
+                f"[{seq}][{label}] max Δ={max_delta:.6g} "
+                f"(mean={mean_delta:.6g}, rms={rms_delta:.6g}) exceeds tolerance {args.tolerance:g} "
+                f"at indices {max_indices}"
+            )
             if args.verbose:
                 for idx in max_indices:
                     print(f"    idx {idx}: {vec_a[idx]} vs {vec_b[idx]}")

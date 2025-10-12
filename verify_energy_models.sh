@@ -81,7 +81,6 @@ if diff -q "$DEV_T2004_OUT" "$MAIN_OUT" >/dev/null; then
 	echo "✔ turner2004 output matches main branch."
 else
 	echo "✖ turner2004 output differs from main branch." >&2
-	diff -u "$MAIN_OUT" "$DEV_T2004_OUT" || true
 	exit 1
 fi
 
@@ -90,7 +89,6 @@ if diff -q "$DEV_T1999_OUT" "$LEGACY_OUT" >/dev/null; then
 	echo "✔ turner1999 output matches legacy branch."
 else
 	echo "✖ turner1999 output differs from legacy branch." >&2
-	diff -u "$LEGACY_OUT" "$DEV_T1999_OUT" || true
 	exit 1
 fi
 
