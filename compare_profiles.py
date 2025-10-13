@@ -71,7 +71,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Compare LinearCapR profile outputs.")
     parser.add_argument("file_a", type=Path)
     parser.add_argument("file_b", type=Path)
-    parser.add_argument("--tolerance", "-t", type=float, default=1e-5, help="Allowed max absolute deviation (default: 1e-5).")
+    parser.add_argument("--tolerance", "-t", type=float, default=1e-20, help="Allowed max absolute deviation (default: 1e-5).")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show per-index differences when mismatches exceed tolerance.")
     args = parser.parse_args()
 
