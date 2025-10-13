@@ -89,9 +89,31 @@ inline Float Fast_LogExpPlusOne(Float x){
 
 
 // returns z; e^z = e^x + e^y
-inline Float logsumexp(Float x, Float y){
+inline Float logsumexp_fast(Float x, Float y){
 	if(x < y) swap(x, y);
 	return (x - y < Float(11.8624794162) ? y + Fast_LogExpPlusOne(x - y) : x);
+}
+
+inline Float logsumexp_legacy(Float x, Float y){
+	if(x == -INF) return y;
+	if(y == -INF) return x;
+	return (x > y ? x + log1p(exp(y - x)) : y + log1p(exp(x - y)));
+}
+
+using LogSumExpFunc = Float (*)(Float, Float);
+
+inline LogSumExpFunc current_logsumexp = logsumexp_fast;
+
+inline void set_logsumexp_fast_mode(){
+	current_logsumexp = logsumexp_fast;
+}
+
+inline void set_logsumexp_legacy_mode(){
+	current_logsumexp = logsumexp_legacy;
+}
+
+inline Float logsumexp(Float x, Float y){
+	return current_logsumexp(x, y);
 }
 
 

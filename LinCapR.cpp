@@ -5,7 +5,10 @@
 #include <cstring>
 
 LinCapR::LinCapR(int beam_size, energy::Model model)
-	: params(energy::get_params(model)), beam_size(beam_size){}
+	: params(energy::get_params(model)), beam_size(beam_size){
+	if(params.use_fast_logsumexp) set_logsumexp_fast_mode();
+	else set_logsumexp_legacy_mode();
+}
 
 
 // partite [lower, upper) and small scores are in [lower, split]

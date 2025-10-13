@@ -61,6 +61,7 @@ struct Params{
 	bool has_special_hairpins;
 	bool allow_mismatch_multi;
 	bool allow_mismatch_external;
+	bool use_fast_logsumexp;
 };
 
 namespace detail{
@@ -101,7 +102,8 @@ inline Params make_turner2004(){
 		.Hexaloop37 = turner2004::Hexaloop37,
 		.has_special_hairpins = true,
 		.allow_mismatch_multi = true,
-		.allow_mismatch_external = true
+		.allow_mismatch_external = true,
+		.use_fast_logsumexp = true
 	};
 }
 
@@ -141,7 +143,8 @@ inline Params make_turner1999(){
 		.Hexaloop37 = nullptr,
 		.has_special_hairpins = false,
 		.allow_mismatch_multi = false,
-		.allow_mismatch_external = false
+		.allow_mismatch_external = false,
+		.use_fast_logsumexp = false
 	};
 }
 
