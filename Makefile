@@ -20,7 +20,7 @@ CXXFLAGS := -O3 -std=c++17 -Wall #-pg -g
 # LIBPATH := -L/usr/local/lib
 # LIBS := -framework Cocoa -framework OpenGL -lz -ljpeg -lpng
 
-all: $(DEPS) $(PROG)
+all: $(PROG)
 
 $(PROG): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBPATH) $(LIBS)
