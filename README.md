@@ -1,7 +1,7 @@
 # LinearCapR: Linear-time computation of local structural-context probabilities for genome-scale RNA without span constraints
 
 LinearCapR is a **linear-time implementation of CapR** that computes,
-for each nucleotide in an RNA sequence, the posterior probabilities of
+for each nucleotide in an RNA sequence without a span limit, the posterior probabilities of
 belonging to six local structural contexts:
 
 - Stem (S)
