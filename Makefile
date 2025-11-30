@@ -20,7 +20,7 @@ CXXFLAGS := -O3 -std=c++17 -Wall #-pg -g
 # LIBPATH := -L/usr/local/lib
 # LIBS := -framework Cocoa -framework OpenGL -lz -ljpeg -lpng
 
-all: $(DEPENDS) $(PROG)
+all: $(DEPS) $(PROG)
 
 $(PROG): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBPATH) $(LIBS)
@@ -35,12 +35,15 @@ $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDEPATH) -MMD -MP -MF $(<:%.cpp=temp/%.d) -c $< -o $(<:%.cpp=temp/%.o)
 endif
 
-.PHONY: clean
 clean:
 ifeq ($(OS),Windows_NT)
-	del $(PROG).exe $(OBJS) $(DEPS)
+	- del $(PROG).exe $(OBJS) $(DEPS)
+	- rmdir /S /Q temp
 else
-	rm $(PROG) $(OBJS) $(DEPS)
+	@if [ -n "$(PROG)" ]; then rm -f "$(PROG)"; fi
+	@rm -f $(OBJS) $(DEPS)
+	@if [ -n "$(OBJDIR)" ] && [ "$(OBJDIR)" != "/" ] && [ "$(OBJDIR)" != "." ]; then \
+		echo "rm -rf $(OBJDIR)"; \
+		rm -rf "$(OBJDIR)"; \
+	fi
 endif
-
--include $(DEPS)
