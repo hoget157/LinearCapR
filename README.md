@@ -175,3 +175,5 @@ If you use LinearCapR in published work, please cite:
 Takumi Otagaki, Hiroaki Hosokawa, Tsukasa Fukunaga, Junichi Iwakiri, Goro Terai, and Kiyoshi Asai. LinearCapR: Linear-time computation of local structural-context probabilities for genome-scale RNA without span constraints. preprint (DOOI to appear)
 
 ## Contact
+For questions, bug reports, or feature requests, please open an issue in this repository or contact the corresponding author:
+ - Takumi Otagaki: takumiotagaki@gmail.com
