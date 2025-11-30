@@ -14,12 +14,7 @@ belonging to six local structural contexts:
 The output format is compatible with CapR: you can drop LinearCapR into
 existing pipelines that expect CapR-style structural profiles.
 
-Internally, LinearCapR combines CapR's stochastic context-free grammar
-(SCFG) with beam search, similar in spirit to LinearFold and
-LinearPartition. This yields **practical linear-time scaling in sequence
-length** without imposing a span limit on base pairs, so long-range
-interactions (e.g. end-to-end pairing in mRNAs or compact viral genomes)
-are retained.
+Internally, LinearCapR combines CapR's stochastic context-free grammar (SCFG) with beam search, similar in spirit to LinearFold and LinearPartition. This yields **practical linear-time scaling in sequence length** without imposing a span limit on base pairs, so long-range interactions (e.g. end-to-end pairing in mRNAs or compact viral genomes) are retained.
 
 If you use this software in your research, please cite the LinearCapR
 paper (see [Citation](#citation)).
@@ -54,16 +49,13 @@ LinCapR  ...
 ```
 
 ## Basic usage
+```sh
 $ ./LinCapR <input_fasta> <output_file> <beam_size> [options]
+```
 
- - input_fasta
-FASTA file containing the RNA sequence. The first sequence in the file
-is used. Sequence characters should be standard RNA bases
-(A, C, G, U); any non-canonical characters are treated as
-unpaired.
+ - input_fasta FASTA file containing the RNA sequence. The first sequence in the file is used. Sequence characters should be standard RNA bases (A, C, G, U); any non-canonical characters are treated as unpaired.
  - output_file
-Path to the output structural profile file. The format is identical to
-CapR (see Output format￼).
+Path to the output structural profile file. The format is identical to CapR (see Output format).
  - beam_size
 Beam width $b$ used for beam pruning in the dynamic programming:
  - $b > 0$: keep at most $b$ highest-scoring states per non-terminal
