@@ -77,16 +77,14 @@ The output structural profile is line-based and compatible with CapR:
 Sequence name (the header line in the input FASTA, without >).
 
 2.	Next 6 lines:
-For each of the six structural contexts, one line containing N
-floating-point numbers separated by spaces, where N is the sequence
-length.
+For each of the six structural contexts, one line containing N floating-point numbers separated by spaces, where N is the sequence length.
 The contexts appear in the following order:
-1. Bulge (B)
-2. Exterior (E)
-3. Hairpin (H)
-4. Internal (I)
-5. Multiloop (M)
-6. Stem (S)
+   1. Bulge (B)
+   2. Exterior (E)
+   3. Hairpin (H)
+   4. Internal (I)
+   5. Multiloop (M)
+   6. Stem (S)
 
 Each number is the posterior probability that the corresponding
 nucleotide belongs to that context. For every position i,
@@ -98,12 +96,12 @@ p_S(i) + p_H(i) + p_B(i) + p_I(i) + p_M(i) + p_E(i) = 1
 For a sequence of length 5, the output looks like:
 ```txt
 example_seq
-0.80 0.75 0.10 0.05 0.02
-0.05 0.10 0.60 0.10 0.05
-0.05 0.05 0.10 0.60 0.10
-0.05 0.05 0.10 0.10 0.60
-0.05 0.05 0.10 0.15 0.23
-0.00 0.00 0.00 0.00 0.00
+Bulge 0.80 0.75 0.10 0.05 0.02
+Exterior 0.05 0.10 0.60 0.10 0.05
+Hairpin 0.05 0.05 0.10 0.60 0.10
+Internal 0.05 0.05 0.10 0.10 0.60
+Multiloop 0.05 0.05 0.10 0.15 0.23
+Stem 0.00 0.00 0.00 0.00 0.00
 ```
 (Values here are illustrative only.)
 
@@ -164,7 +162,7 @@ Information of the LinearCapR paper.
 
 If you use LinearCapR in published work, please cite:
 
-Takumi Otagaki, Hiroaki Hosokawa, Tsukasa Fukunaga, Junichi Iwakiri, Goro Terai, and Kiyoshi Asai. LinearCapR: Linear-time computation of local structural-context probabilities for genome-scale RNA without span constraints. preprint (DOOI to appear)
+Takumi Otagaki, Hiroaki Hosokawa, Tsukasa Fukunaga, Junichi Iwakiri, Goro Terai, and Kiyoshi Asai. LinearCapR: Linear-time computation of local structural-context probabilities for genome-scale RNA without span constraints. preprint (DOI to appear)
 
 ## Contact
 For questions, bug reports, or feature requests, please open an issue in this repository or contact the corresponding author:
