@@ -78,6 +78,7 @@ Sequence name (the header line in the input FASTA, without >).
 
 2.	Next 6 lines:
 For each of the six structural contexts, one line containing N floating-point numbers separated by spaces, where N is the sequence length.
+
 The contexts appear in the following order:
    1. Bulge (B)
    2. Exterior (E)
