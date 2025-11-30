@@ -90,7 +90,7 @@ void LinCapR::output(ofstream &ofs, const string &seq_name) const{
 	for(int i = 0; i < seq_n; i++) ofs << prob_I[i] << " ";
 	ofs << endl;
 
-	ofs << "Multibranch ";
+	ofs << "Multiloop ";
 	for(int i = 0; i < seq_n; i++) ofs << prob_M[i] << " ";
 	ofs << endl;
 
