@@ -163,7 +163,49 @@ Information of the LinearCapR paper.
 
 If you use LinearCapR in published work, please cite:
 
-Takumi Otagaki, Hiroaki Hosokawa, Tsukasa Fukunaga, Junichi Iwakiri, Goro Terai, and Kiyoshi Asai. LinearCapR: Linear-time computation of local structural-context probabilities for genome-scale RNA without span constraints. preprint (DOI to appear)
+```bibtex
+@ARTICLE{Otagaki2025-cu,
+  title       = "{LinearCapR}: Linear-time computation of per-nucleotide
+                 structural-context probabilities of {RNA} without base-pair
+                 span limits",
+  author      = "Otagaki, Takumi and Hosokawa, Hiroaki and Fukunaga, Tsukasa and
+                 Iwakiri, Junichi and Terai, Goro and Asai, Kiyoshi",
+  journal     = "bioRxiv",
+  institution = "bioRxiv",
+  pages       = "2025.12.26.696559",
+  abstract    = "Motivation: RNA molecules adopt dynamic ensembles of secondary
+                 structures, where the local structural context of each
+                 nucleotide--such as whether it resides in a stem or a specific
+                 type of loop--strongly shapes molecular interactions and
+                 regulatory function. Structural-context probabilities therefore
+                 provide a more functionally informative view of RNA folding
+                 than the minimum free energy structures or base-pairing
+                 probabilities. However, existing tools either require O(N 3 )
+                 time or employ span-restricted approximations that omit
+                 long-range base-pairs, limiting their applicability to large
+                 and biologically important RNAs. Results: We introduce
+                 LinearCapR, enabling linear-time, span-unrestricted computation
+                 of structural-context marginalized probabilities, using
+                 beam-pruned Stochastic Context Free Grammar-based computation.
+                 LinearCapR retains global ensemble features lost by
+                 span-limited methods and yields superior predictive power on
+                 bpRNA-1m(90) dataset, especially for multiloops and exterior
+                 regions, as well as long-distance stems. LinearCapR supports
+                 analysis of long RNAs, demonstrated on the full genome of
+                 SARS-CoV-2. Conclusions: LinearCapR provides the first
+                 base-pair-span-unrestricted, linear-time framework for RNA
+                 structural context analysis, retaining key thermodynamic
+                 ensemble features essential for functional interpretation. It
+                 enables large-scale studies of viral genomes, long non-coding
+                 RNAs, and downstream analyses such as RNA-binding protein site
+                 prediction. Availability: The source code of LinearCapR is
+                 available at https://github.com/hoget157/LinearCapR.",
+  month       =  dec,
+  year        =  2025,
+  language    = "en"
+}
+
+```
 
 If you want to reproduce all the graphs and tables in the paper, please visit the following repository:
  - https://github.com/TakumiOtagaki/LinearCapR_ComputationalExperiments
