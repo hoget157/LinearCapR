@@ -12,6 +12,7 @@ int main(int argc, char **argv){
 		cout << "Options:" << endl;
 		cout << "  -e                 Output ensemble energy" << endl;
 		cout << "  --energy <model>   Energy model: turner2004 (default) or turner1999" << endl;
+		cout << "  --engine <name>    Energy engine: lincapr (default) or raccess" << endl;
 		return 1;
 	}
 
@@ -23,6 +24,7 @@ int main(int argc, char **argv){
 	// get options
 	bool output_energy = false;
 	energy::Model energy_model = energy::Model::Turner2004;
+	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
 		if(strcmp(argv[i], "-e") == 0){
 			output_energy = true;
@@ -40,6 +42,20 @@ int main(int argc, char **argv){
 				cout << "Error: invalid energy model: " << choice << endl;
 				return 1;
 			}
+		}else if(strcmp(argv[i], "--engine") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --engine requires an argument (lincapr or raccess)" << endl;
+				return 1;
+			}
+			const char *choice = argv[++i];
+			if(strcmp(choice, "lincapr") == 0){
+				engine = LinCapR::EnergyEngine::LinearCapR;
+			}else if(strcmp(choice, "raccess") == 0){
+				engine = LinCapR::EnergyEngine::Raccess;
+			}else{
+				cout << "Error: invalid engine: " << choice << endl;
+				return 1;
+			}
 		}else if(strncmp(argv[i], "--energy=", 9) == 0){
 			const char *choice = argv[i] + 9;
 			if(strcmp(choice, "turner2004") == 0){
@@ -48,6 +64,16 @@ int main(int argc, char **argv){
 				energy_model = energy::Model::Turner1999;
 			}else{
 				cout << "Error: invalid energy model: " << choice << endl;
+				return 1;
+			}
+		}else if(strncmp(argv[i], "--engine=", 9) == 0){
+			const char *choice = argv[i] + 9;
+			if(strcmp(choice, "lincapr") == 0){
+				engine = LinCapR::EnergyEngine::LinearCapR;
+			}else if(strcmp(choice, "raccess") == 0){
+				engine = LinCapR::EnergyEngine::Raccess;
+			}else{
+				cout << "Error: invalid engine: " << choice << endl;
 				return 1;
 			}
 		}else{
@@ -71,7 +97,7 @@ int main(int argc, char **argv){
 
 	// run LinCapR
 	const int s = seq.size();
-	LinCapR lcr(beam_size, energy_model);
+	LinCapR lcr(beam_size, energy_model, engine);
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);
