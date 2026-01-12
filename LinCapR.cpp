@@ -2,13 +2,15 @@
 #include "beam_prune.hpp"
 #include "dp_table_api.hpp"
 #include "seq_utils.hpp"
+#include "energy_linearcapr.hpp"
 
 #include <fstream>
 #include <algorithm>
-#include <cstring>
 
 LinCapR::LinCapR(int beam_size, energy::Model model)
-	: params(energy::get_params(model)), beam_size(beam_size){
+	: params(energy::get_params(model)),
+	  beam_size(beam_size),
+	  _energy(new lcr::LinearCapREnergyModel(params)) {
 	if(params.use_fast_logsumexp) set_logsumexp_fast_mode();
 	else set_logsumexp_legacy_mode();
 }
@@ -95,6 +97,7 @@ void LinCapR::initialize(const string &seq){
 	for(int i = 0; i < seq_n; i++){
 		seq_int[i] = lcr::seq::base_to_num(seq[i]);
 	}
+	_energy->set_sequence(seq, seq_int);
 
 	// prepare DP tables
 	alphas[0] = &alpha_S;
@@ -150,24 +153,24 @@ void LinCapR::calc_inside(){
 		for(const auto [i, score] : alpha_S[j]){
 			// S -> S
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				lcr::dp::update_sum(alpha_S, i - 1, j + 1, score - energy_loop(i - 1, j + 1, i, j) / params.kT);
+				lcr::dp::update_sum(alpha_S, i - 1, j + 1, score - _energy->energy_loop(i - 1, j + 1, i, j) / _energy->kT());
 			}
 			
 			// M2 -> S
 			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
-				lcr::dp::update_sum(alpha_M2, i, j + n, score - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / params.kT);
+				lcr::dp::update_sum(alpha_M2, i, j + n, score - (_energy->energy_multi_bif(i, j) + _energy->energy_multi_unpaired(j + 1, j + n)) / _energy->kT());
 			}
 
 			// SE -> S: p..i..j..q, [p - 1, q] can be pair
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
 				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
 					if((p == i && q == j + 1)) continue;
-					lcr::dp::update_sum(alpha_SE, p, q - 1, score - energy_loop(p - 1, q, i, j) / params.kT);
+					lcr::dp::update_sum(alpha_SE, p, q - 1, score - _energy->energy_loop(p - 1, q, i, j) / _energy->kT());
 				}
 			}
 
 			// O -> O + S
-			lcr::dp::update_sum(alpha_O, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + score - energy_external(i, j) / params.kT);
+			lcr::dp::update_sum(alpha_O, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + score - _energy->energy_external(i, j) / _energy->kT());
 		}
 
 		// M2
@@ -204,7 +207,7 @@ void LinCapR::calc_inside(){
 		for(const auto [i, score] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				lcr::dp::update_sum(alpha_SE, i, j, score - energy_multi_closing(i - 1, j + 1) / params.kT);
+				lcr::dp::update_sum(alpha_SE, i, j, score - _energy->energy_multi_closing(i - 1, j + 1) / _energy->kT());
 			}
 		}
 
@@ -212,7 +215,7 @@ void LinCapR::calc_inside(){
 		for(int n = TURN; n <= MAXLOOP; n++){
 			const int i = j - n + 1;
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				lcr::dp::update_sum(alpha_SE, i, j, -energy_hairpin(i - 1, j + 1) / params.kT);
+				lcr::dp::update_sum(alpha_SE, i, j, -_energy->energy_hairpin(i - 1, j + 1) / _energy->kT());
 			}
 		}
 
@@ -227,7 +230,7 @@ void LinCapR::calc_inside(){
 
 		// O -> O
 		if(j + 1 < seq_n){
-			lcr::dp::update_sum(alpha_O, j + 1, alpha_O[j] - energy_external_unpaired(j + 1, j + 1) / params.kT);
+			lcr::dp::update_sum(alpha_O, j + 1, alpha_O[j] - _energy->energy_external_unpaired(j + 1, j + 1) / _energy->kT());
 		}
 	}
 }
@@ -238,11 +241,11 @@ void LinCapR::calc_outside(){
 	for(int j = seq_n - 1; j >= 0; j--){
 		// O
 		// O -> O
-		lcr::dp::update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external_unpaired(j + 1, j + 1) / params.kT);
+		lcr::dp::update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - _energy->energy_external_unpaired(j + 1, j + 1) / _energy->kT());
 		
 		// O -> O + S
 		for(const auto [i, score] : alpha_S[j]){
-			lcr::dp::update_sum(beta_O, i, score + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / params.kT);
+			lcr::dp::update_sum(beta_O, i, score + (j + 1 < seq_n ? beta_O[j + 1] : 0) - _energy->energy_external(i, j) / _energy->kT());
 		}
 
 		// SE
@@ -257,7 +260,7 @@ void LinCapR::calc_outside(){
 		for(const auto [i, _] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n){
-				lcr::dp::update_sum(beta_M, i, j, lcr::dp::get_value(beta_SE, i, j) - energy_multi_closing(i - 1, j + 1) / params.kT);
+				lcr::dp::update_sum(beta_M, i, j, lcr::dp::get_value(beta_SE, i, j) - _energy->energy_multi_closing(i - 1, j + 1) / _energy->kT());
 			}
 		}
 
@@ -288,24 +291,24 @@ void LinCapR::calc_outside(){
 		// S
 		for(const auto [i, _] : alpha_S[j]){
 			// O -> O + S
-			lcr::dp::update_sum(beta_S, i, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + (j + 1 < seq_n ? beta_O[j + 1] : 0) - energy_external(i, j) / params.kT);
+			lcr::dp::update_sum(beta_S, i, j, (i - 1 >= 0 ? alpha_O[i - 1] : 0) + (j + 1 < seq_n ? beta_O[j + 1] : 0) - _energy->energy_external(i, j) / _energy->kT());
 
 			// SE -> S
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
 				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
 					if((p == i && q == j + 1)) continue;
-					lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_SE, p, q - 1) - energy_loop(p - 1, q, i, j) / params.kT);
+					lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_SE, p, q - 1) - _energy->energy_loop(p - 1, q, i, j) / _energy->kT());
 				}
 			}
 
 			// S -> S
 			if(i - 1 >= 0 && j + 1 < seq_n){
-				lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_S, i - 1, j + 1) - energy_loop(i - 1, j + 1, i, j) / params.kT);
+				lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_S, i - 1, j + 1) - _energy->energy_loop(i - 1, j + 1, i, j) / _energy->kT());
 			}
 			
 			// M2 -> S
 			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
-				lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_M2, i, j + n) - (energy_multi_bif(i, j) + energy_multi_unpaired(j + 1, j + n)) / params.kT);
+				lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_M2, i, j + n) - (_energy->energy_multi_bif(i, j) + _energy->energy_multi_unpaired(j + 1, j + n)) / _energy->kT());
 			}
 		}
 	}
@@ -319,13 +322,13 @@ void LinCapR::calc_profile(){
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [j, score] : beta_SE[k]){
 			// H
-			lcr::dp::add_range(prob_H, j, k, exp(score - energy_hairpin(j - 1, k + 1) / params.kT - logZ));
+			lcr::dp::add_range(prob_H, j, k, exp(score - _energy->energy_hairpin(j - 1, k + 1) / _energy->kT() - logZ));
 
 			// B, I
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
 				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
 					if((p == j && q == k) || !lcr::dp::contains(alpha_S, p, q)) continue;
-					const Float new_score = exp(score + alpha_S[q][p] - energy_loop(j - 1, k + 1, p, q) / params.kT - logZ);
+					const Float new_score = exp(score + alpha_S[q][p] - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
 					lcr::dp::add_range((q == k ? prob_B : prob_I), j, p - 1, new_score);
 					lcr::dp::add_range((p == j ? prob_B : prob_I), q + 1, k, new_score);
 				}
@@ -341,7 +344,7 @@ void LinCapR::calc_profile(){
 		for(const auto [p, score] : alpha_MB[k]){
 			for(int j = p - 1; j >= max(0, p - MAXLOOP); j--){
 				if(!lcr::dp::contains(beta_M, j, k)) continue;
-				const Float new_score = exp(score + beta_M[k][j] - energy_multi_unpaired(j, p - 1) / params.kT - logZ);
+				const Float new_score = exp(score + beta_M[k][j] - _energy->energy_multi_unpaired(j, p - 1) / _energy->kT() - logZ);
 				lcr::dp::add_range(prob_M, j, p - 1, new_score);
 			}
 		}
@@ -350,7 +353,7 @@ void LinCapR::calc_profile(){
 		for(const auto [j, score] : alpha_S[q]){
 			for(int k = q + 1; k <= min(seq_n - 1, q + MAXLOOP); k++){
 				if(!lcr::dp::contains(beta_M2, j, k)) continue;
-				const Float new_score = exp(score + beta_M2[k][j] - (energy_multi_bif(j, q) + energy_multi_unpaired(q + 1, k)) / params.kT - logZ);
+				const Float new_score = exp(score + beta_M2[k][j] - (_energy->energy_multi_bif(j, q) + _energy->energy_multi_unpaired(q + 1, k)) / _energy->kT() - logZ);
 				lcr::dp::add_range(prob_M, q + 1, k, new_score);
 			}
 		}
