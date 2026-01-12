@@ -83,7 +83,19 @@ void LinCapR::clear(){
 
 // returns free energy of ensemble in kcal/mol
 Float LinCapR::get_energy_ensemble() const{
-	return (alpha_O[seq_n - 1] * -(params.temperature + params.k0) * params.gas_constant) / 1000;
+	const Float logZ = alpha_O[seq_n - 1];
+	if (dynamic_cast<const lcr::LinearCapREnergyModel*>(_energy.get()) != nullptr) {
+		return (logZ * -(params.temperature + params.k0) * params.gas_constant) / 1000;
+	}
+	return -_energy->kT() * logZ;
+}
+
+Float LinCapR::get_logZ() const{
+	return alpha_O[seq_n - 1];
+}
+
+const vector<Float>& LinCapR::get_prob_stem() const{
+	return prob_S;
 }
 
 
