@@ -584,13 +584,32 @@ void LinCapR::debug_internal(int idx, int topn) const {
 		return a.prob > b.prob;
 	});
 
+	const auto base_at = [&](int pos) -> char {
+		if(pos < 0 || pos >= seq_n) return 'N';
+		return seq[pos];
+	};
+
 	cerr << "debug_internal i=" << idx << " candidates=" << items.size() << endl;
 	const int limit = min(topn, static_cast<int>(items.size()));
 	for(int t = 0; t < limit; t++){
 		const auto& it = items[t];
+		const int outer_i = it.j - 1;
+		const int outer_j = it.k + 1;
+		const int left_len = it.p - it.j;
+		const int right_len = it.k - it.q;
+		const double loop_energy = (outer_i >= 0 && outer_j < seq_n)
+			? _energy->energy_loop(outer_i, outer_j, it.p, it.q)
+			: 0.0;
 		cerr << "  " << it.side
 		     << " (j,k,p,q)=(" << it.j << "," << it.k << "," << it.p << "," << it.q << ")"
-		     << " prob=" << it.prob << endl;
+		     << " prob=" << it.prob
+		     << " outer=(" << outer_i << "," << outer_j << ")"
+		     << " inner=(" << it.p << "," << it.q << ")"
+		     << " len=(" << left_len << "," << right_len << ")"
+		     << " bases outer=" << base_at(outer_i) << "," << base_at(outer_j)
+		     << " inner=" << base_at(it.p) << "," << base_at(it.q)
+		     << " loopE=" << loop_energy
+		     << endl;
 	}
 }
 
