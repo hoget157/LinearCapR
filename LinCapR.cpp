@@ -597,6 +597,8 @@ void LinCapR::debug_internal(int idx, int topn) const {
 		const int outer_j = it.k + 1;
 		const int left_len = it.p - it.j;
 		const int right_len = it.k - it.q;
+		const bool outer_pairable = (0 <= outer_i && outer_j < seq_n) ? can_pair(outer_i, outer_j) : false;
+		const bool outer_in_alpha = (0 <= outer_i && outer_j < seq_n) ? lcr::dp::contains(alpha_S, outer_i, outer_j) : false;
 		const double loop_energy = (outer_i >= 0 && outer_j < seq_n)
 			? _energy->energy_loop(outer_i, outer_j, it.p, it.q)
 			: 0.0;
@@ -608,6 +610,8 @@ void LinCapR::debug_internal(int idx, int topn) const {
 		     << " len=(" << left_len << "," << right_len << ")"
 		     << " bases outer=" << base_at(outer_i) << "," << base_at(outer_j)
 		     << " inner=" << base_at(it.p) << "," << base_at(it.q)
+		     << " outer_can_pair=" << outer_pairable
+		     << " outer_in_alpha=" << outer_in_alpha
 		     << " loopE=" << loop_energy
 		     << endl;
 	}
