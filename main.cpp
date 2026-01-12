@@ -136,6 +136,28 @@ int main(int argc, char **argv){
 		ofs.close();
 
 		if(output_energy) printf("G_ensemble: %.2lf\n", lcr.get_energy_ensemble());
+		if(output_logz) printf("logZ: %.10f\n", lcr.get_logZ());
+		if(compare_unpaired){
+			const int max_span = (compare_max_span > 0 ? compare_max_span : static_cast<int>(seq[i].size() + 1));
+			const auto unpaired = lcr::compute_raccess_unpaired_1(seq[i], max_span);
+			const auto& p_stem = lcr.get_prob_stem();
+			double max_diff = -1.0;
+			int max_i = -1;
+			double max_unp = 0.0;
+			double max_from_stem = 0.0;
+			for(size_t k = 0; k < p_stem.size(); k++){
+				const double p_unp_from_stem = 1.0 - p_stem[k];
+				const double diff = fabs(p_unp_from_stem - unpaired[k]);
+				if(diff > max_diff){
+					max_diff = diff;
+					max_i = static_cast<int>(k);
+					max_unp = unpaired[k];
+					max_from_stem = p_unp_from_stem;
+				}
+			}
+			printf("unpaired_check: max_abs_diff=%.6g at i=%d (raccess_unpaired=%.6g, 1-p_stem=%.6g)\n",
+			       max_diff, max_i, max_unp, max_from_stem);
+		}
 
 		lcr.clear();
 	}
