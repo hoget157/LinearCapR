@@ -9,7 +9,10 @@
 
 class LinCapR{
 public:
-	LinCapR(int beam_size, energy::Model model = energy::Model::Turner2004);
+	enum class EnergyEngine { LinearCapR, Raccess };
+	LinCapR(int beam_size,
+	       energy::Model model = energy::Model::Turner2004,
+	       EnergyEngine engine = EnergyEngine::LinearCapR);
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();

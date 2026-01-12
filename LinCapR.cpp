@@ -7,10 +7,18 @@
 #include <fstream>
 #include <algorithm>
 
-LinCapR::LinCapR(int beam_size, energy::Model model)
+LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine)
 	: params(energy::get_params(model)),
-	  beam_size(beam_size),
-	  _energy(new lcr::LinearCapREnergyModel(params)) {
+	  beam_size(beam_size) {
+	switch (engine) {
+	case EnergyEngine::Raccess:
+		_energy.reset(new lcr::RaccessEnergyModel());
+		break;
+	case EnergyEngine::LinearCapR:
+	default:
+		_energy.reset(new lcr::LinearCapREnergyModel(params));
+		break;
+	}
 	if(params.use_fast_logsumexp) set_logsumexp_fast_mode();
 	else set_logsumexp_legacy_mode();
 }
