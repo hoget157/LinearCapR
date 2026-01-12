@@ -353,7 +353,9 @@ void LinCapR::calc_profile(){
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
 				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
 					if((p == j && q == k) || !lcr::dp::contains(alpha_S, p, q)) continue;
-					const Float new_score = exp(score + alpha_S[q][p] - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
+					auto it_a = alpha_S[q].find(p);
+					if(it_a == alpha_S[q].end()) continue;
+					const Float new_score = exp(score + it_a->second - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
 					lcr::dp::add_range((q == k ? prob_B : prob_I), j, p - 1, new_score);
 					lcr::dp::add_range((p == j ? prob_B : prob_I), q + 1, k, new_score);
 				}
@@ -561,7 +563,9 @@ void LinCapR::debug_internal(int idx, int topn) const {
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
 				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
 					if((p == j && q == k) || !lcr::dp::contains(alpha_S, p, q)) continue;
-					const Float new_score = exp(score + alpha_S[q][p] - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
+					auto it_a = alpha_S[q].find(p);
+					if(it_a == alpha_S[q].end()) continue;
+					const Float new_score = exp(score + it_a->second - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
 
 					const bool left_internal = (q != k) && (idx >= j && idx <= (p - 1));
 					const bool right_internal = (p != j) && (idx >= (q + 1) && idx <= k);
