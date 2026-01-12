@@ -164,6 +164,12 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 		             base_at(c + 1),
 		             base_at(d),
 		             base_at(d + 1));
+		const int li = c - a;
+		const int lj = b - d;
+		const double interior_score = sm.score_interior(dp_i, dp_j, c, d);
+		const double interior_nuc_score = sm.score_interior_nuc(dp_i, dp_j, c, d);
+		std::fprintf(stderr, "  interior lens (li,lj)=(%d,%d) score=%g nuc_score=%g\n",
+		             li, lj, interior_score, interior_nuc_score);
 		const double via_closed = api.score_to_energy(api.log_boltz_loop_closed(a, b, c, d));
 		double direct = 0.0;
 		if ((c == (a + 1)) && (d == (b - 1))) {
