@@ -9,5 +9,6 @@
 namespace lcr {
 
 std::unique_ptr<EnergyApi> make_raccess_energy();
+std::vector<double> compute_raccess_unpaired_1(const std::string& seq, int max_span);
 
 } // namespace lcr

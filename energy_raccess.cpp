@@ -7,6 +7,7 @@
 #define LCR_RESTORE_MAXLOOP 1
 #endif
 #include "../raccess/src/raccess/energy_model_api.hpp"
+#include "../raccess/src/raccess/prob_model.hpp"
 #include "../raccess/src/util/util.hpp"
 #ifdef LCR_RESTORE_MAXLOOP
 #pragma pop_macro("MAXLOOP")
