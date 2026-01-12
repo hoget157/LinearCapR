@@ -17,6 +17,8 @@ public:
 	void output(ofstream&, const string&) const;
 	void clear();
 	Float get_energy_ensemble() const;
+	Float get_logZ() const;
+	const vector<Float>& get_prob_stem() const;
 private:
 	const energy::Params &params;
 	const int beam_size;
