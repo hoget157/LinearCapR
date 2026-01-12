@@ -151,6 +151,13 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 		}
 		std::fprintf(stderr, "loop (%d,%d,%d,%d): closed=%g direct=%g diff=%g\n",
 		             i, j, p, q, via_closed, direct, via_closed - direct);
+
+		if ((c == (a + 1)) && (d == (b - 1))) {
+			const double stack_ab1 = api.score_to_energy(api.log_boltz_stack(a, b + 1));
+			const double stack_a1b = api.score_to_energy(api.log_boltz_stack(a - 1, b));
+			std::fprintf(stderr, "stack variants (%d,%d): a,b+1=%g a-1,b=%g diff=%g\n",
+			             i, j, stack_ab1, stack_a1b, stack_ab1 - stack_a1b);
+		}
 	}
 }
 
