@@ -2,8 +2,10 @@
 
 #include "miscs.hpp"
 #include "energy_model.hpp"
+#include "energy_api.hpp"
 
 #include <string>
+#include <memory>
 
 class LinCapR{
 public:
@@ -32,6 +34,8 @@ private:
 
 	// calculated structural profiles
 	vector<Float> prob_B, prob_I, prob_H, prob_M, prob_E, prob_S, *probs[NPROBS];
+
+	std::unique_ptr<lcr::EnergyApi> _energy;
 
 	Float prune(Map<int, Float>&) const;
 
