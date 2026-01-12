@@ -72,4 +72,33 @@ std::unique_ptr<EnergyApi> make_raccess_energy() {
 	return std::unique_ptr<EnergyApi>(new RaccessEnergyModelImpl());
 }
 
+std::vector<double> compute_raccess_unpaired_1(const std::string& seq, int max_span) {
+	using SM = Raccess::ScoreModelEnergy;
+	using PM = Raccess::ProbModel<SM>;
+	SM sm;
+	sm.initialize();
+
+	SM::Seq codes;
+	codes.resize(seq.size());
+	::Alpha::str_to_ncodes(seq.begin(), seq.end(), codes.begin());
+	sm.set_seq(codes);
+
+	PM pm;
+	pm.set_score_model(sm);
+	pm.set_max_span(max_span);
+	pm.set_prob_thr(0);
+	PM::VI acc_lens;
+	acc_lens.push_back(1);
+	pm.set_acc_lens(acc_lens);
+
+	std::vector<double> unpaired(seq.size(), 0.0);
+	auto block = [&](int i, int w, double energy) {
+		if (w != 1) return;
+		const double logp = sm.energy_to_score(energy);
+		unpaired[i] = exp(logp);
+	};
+	pm.compute_prob(block);
+	return unpaired;
+}
+
 } // namespace lcr
