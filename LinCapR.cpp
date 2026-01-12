@@ -1,5 +1,6 @@
 #include "LinCapR.hpp"
 #include "beam_prune.hpp"
+#include "seq_utils.hpp"
 
 #include <fstream>
 #include <algorithm>
@@ -91,7 +92,7 @@ void LinCapR::initialize(const string &seq){
 	seq_n = seq.length();
 	seq_int.resize(seq_n);
 	for(int i = 0; i < seq_n; i++){
-		seq_int[i] = base_to_num(seq[i]);
+		seq_int[i] = lcr::seq::base_to_num(seq[i]);
 	}
 
 	// prepare DP tables
@@ -134,13 +135,7 @@ void LinCapR::initialize(const string &seq){
 	for(int i = 0; i < NPROBS; i++) probs[i]->resize(seq_n);
 
 	// calc next pair index
-	for(int i = 0; i < NBASE; i++) next_pair[i].resize(seq_n + 1, seq_n);
-	for(int i = seq_n - 1; i >= 0; i--){
-		for(int j = 0; j < NBASE; j++){
-			next_pair[j][i] = next_pair[j][i + 1];
-			if(BP_pair[seq_int[i]][j] > 0) next_pair[j][i] = i;
-		}
-	}
+	lcr::seq::build_next_pair(seq_int, next_pair);
 }
 
 
