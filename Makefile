@@ -47,4 +47,7 @@ else
 		echo "rm -rf $(OBJDIR)"; \
 		rm -rf "$(OBJDIR)"; \
 	fi
+
+run: 
+	./LinCapR  ./test.fa test2.out 100 -e --energy turner2004 --logz --engine raccess --compare-unpaired
 endif
