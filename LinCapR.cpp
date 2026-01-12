@@ -7,6 +7,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <iostream>
 
 LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine)
 	: params(energy::get_params(model)),

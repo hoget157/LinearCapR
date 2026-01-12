@@ -21,6 +21,8 @@ int main(int argc, char **argv){
 		cout << "  --engine <name>    Energy engine: lincapr (default) or raccess" << endl;
 		cout << "  --debug-local i,j  Compare closed-wrapper vs direct Raccess energies at (i,j) (0-origin)" << endl;
 		cout << "  --debug-loop p,q   Optional inner pair for loop energy check (0-origin)" << endl;
+		cout << "  --debug-stem i     Print top paired positions contributing to Stem[i]" << endl;
+		cout << "  --debug-top n      Number of top pairs to print (default: 10)" << endl;
 		return 1;
 	}
 
@@ -41,6 +43,9 @@ int main(int argc, char **argv){
 	int debug_j = -1;
 	int debug_p = -1;
 	int debug_q = -1;
+	bool debug_stem = false;
+	int debug_stem_i = -1;
+	int debug_top = 10;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
@@ -86,6 +91,19 @@ int main(int argc, char **argv){
 			debug_p = stoi(arg.substr(0, comma));
 			debug_q = stoi(arg.substr(comma + 1));
 			debug_loop = true;
+		}else if(strcmp(argv[i], "--debug-stem") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-stem requires i" << endl;
+				return 1;
+			}
+			debug_stem_i = atoi(argv[++i]);
+			debug_stem = true;
+		}else if(strcmp(argv[i], "--debug-top") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-top requires n" << endl;
+				return 1;
+			}
+			debug_top = atoi(argv[++i]);
 		}else if(strcmp(argv[i], "--energy") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
@@ -156,6 +174,11 @@ int main(int argc, char **argv){
 			debug_p = stoi(arg.substr(0, comma));
 			debug_q = stoi(arg.substr(comma + 1));
 			debug_loop = true;
+		}else if(strncmp(argv[i], "--debug-stem=", 13) == 0){
+			debug_stem_i = atoi(argv[i] + 13);
+			debug_stem = true;
+		}else if(strncmp(argv[i], "--debug-top=", 12) == 0){
+			debug_top = atoi(argv[i] + 12);
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
@@ -232,6 +255,9 @@ int main(int argc, char **argv){
 				cout << "Warning: --debug-local uses the Raccess energy model regardless of --engine" << endl;
 			}
 			lcr::debug_raccess_local(seq[i], debug_i, debug_j, debug_loop, debug_p, debug_q);
+		}
+		if(debug_stem){
+			lcr.debug_stem_pairs(debug_stem_i, debug_top);
 		}
 
 		lcr.clear();
