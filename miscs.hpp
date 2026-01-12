@@ -138,6 +138,7 @@ inline Float get_value(Table &t, const int i, const int j, const Float default_v
 // for k in [i, j]: v[k] += x
 // call prefix_sum() to complete
 inline void add_range(vector<Float> &v, const int i, const int j, const Float x){
+	if(i > j) return;
 	v[i] += x;
 	if(j + 1 < (int)v.size()) v[j + 1] -= x;
 }
