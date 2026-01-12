@@ -538,5 +538,57 @@ void LinCapR::debug_prob(int idx) const {
 	     << " sum=" << sum << endl;
 }
 
+void LinCapR::debug_internal(int idx, int topn) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_internal: idx out of range: " << idx << endl;
+		return;
+	}
+	if(topn <= 0) topn = 1;
+
+	struct Item {
+		int j;
+		int k;
+		int p;
+		int q;
+		double prob;
+		const char* side;
+	};
+	vector<Item> items;
+	const double logZ = alpha_O[seq_n - 1];
+
+	for(int k = 0; k < seq_n; k++){
+		for(const auto [j, score] : beta_SE[k]){
+			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
+				for(int q = k; q >= p + TURN + 1 && (p - j) + (k - q) <= MAXLOOP; q--){
+					if((p == j && q == k) || !lcr::dp::contains(alpha_S, p, q)) continue;
+					const Float new_score = exp(score + alpha_S[q][p] - _energy->energy_loop(j - 1, k + 1, p, q) / _energy->kT() - logZ);
+
+					const bool left_internal = (q != k) && (idx >= j && idx <= (p - 1));
+					const bool right_internal = (p != j) && (idx >= (q + 1) && idx <= k);
+					if(left_internal){
+						items.push_back({j, k, p, q, new_score, "left"});
+					}
+					if(right_internal){
+						items.push_back({j, k, p, q, new_score, "right"});
+					}
+				}
+			}
+		}
+	}
+
+	sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+		return a.prob > b.prob;
+	});
+
+	cerr << "debug_internal i=" << idx << " candidates=" << items.size() << endl;
+	const int limit = min(topn, static_cast<int>(items.size()));
+	for(int t = 0; t < limit; t++){
+		const auto& it = items[t];
+		cerr << "  " << it.side
+		     << " (j,k,p,q)=(" << it.j << "," << it.k << "," << it.p << "," << it.q << ")"
+		     << " prob=" << it.prob << endl;
+	}
+}
+
 
 // calc energy of hairpin loop [i, j]
