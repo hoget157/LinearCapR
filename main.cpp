@@ -1,9 +1,11 @@
 #include "LinCapR.hpp"
 #include "FileReader.hpp"
+#include "energy_raccess.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <cmath>
 
 // Usage: ./LinCapR <input_file> <output_file> <beam_size> [options]
 int main(int argc, char **argv){
@@ -11,6 +13,9 @@ int main(int argc, char **argv){
 		cout << "Usage: ./LinCapR <input_file> <output_file> <beam_size> [options]" << endl;
 		cout << "Options:" << endl;
 		cout << "  -e                 Output ensemble energy" << endl;
+		cout << "  --logz             Output logZ (alpha_O[last])" << endl;
+		cout << "  --compare-unpaired Compare 1 - p(stem) with Raccess p([i:i], unpaired)" << endl;
+		cout << "  --max-span <int>   Raccess max span for compare-unpaired (default: seq length)" << endl;
 		cout << "  --energy <model>   Energy model: turner2004 (default) or turner1999" << endl;
 		cout << "  --engine <name>    Energy engine: lincapr (default) or raccess" << endl;
 		return 1;
@@ -23,11 +28,24 @@ int main(int argc, char **argv){
 
 	// get options
 	bool output_energy = false;
+	bool output_logz = false;
+	bool compare_unpaired = false;
+	int compare_max_span = 0;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
 		if(strcmp(argv[i], "-e") == 0){
 			output_energy = true;
+		}else if(strcmp(argv[i], "--logz") == 0){
+			output_logz = true;
+		}else if(strcmp(argv[i], "--compare-unpaired") == 0){
+			compare_unpaired = true;
+		}else if(strcmp(argv[i], "--max-span") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --max-span requires an integer argument" << endl;
+				return 1;
+			}
+			compare_max_span = atoi(argv[++i]);
 		}else if(strcmp(argv[i], "--energy") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
@@ -76,10 +94,16 @@ int main(int argc, char **argv){
 				cout << "Error: invalid engine: " << choice << endl;
 				return 1;
 			}
+		}else if(strncmp(argv[i], "--max-span=", 11) == 0){
+			compare_max_span = atoi(argv[i] + 11);
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
 		}
+	}
+	if(compare_unpaired && engine != LinCapR::EnergyEngine::Raccess){
+		cout << "Error: --compare-unpaired requires --engine raccess" << endl;
+		return 1;
 	}
 
 	// read fasta file
