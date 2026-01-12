@@ -15,8 +15,9 @@ ifeq ($(strip $(CXX)),)
 CXX := g++
 endif
 
-CXXFLAGS := -O3 -std=c++17 -Wall #-pg -g
-# INCLUDEPATH := -I/usr/local/include
+# CXXFLAGS := -O3 -std=c++17 -Wall #-pg -g
+CXXFLAGS := -O3 -std=c++17 -Wall -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES  #-pg -g 
+INCLUDEPATH := -I../raccess/src
 # LIBPATH := -L/usr/local/lib
 # LIBS := -framework Cocoa -framework OpenGL -lz -ljpeg -lpng
 
