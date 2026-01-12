@@ -9,6 +9,7 @@
 #include "../raccess/src/raccess/energy_model_api.hpp"
 #include "../raccess/src/raccess/prob_model.hpp"
 #include "../raccess/src/util/util.hpp"
+#include <cstdio>
 #ifdef LCR_RESTORE_MAXLOOP
 #pragma pop_macro("MAXLOOP")
 #undef LCR_RESTORE_MAXLOOP
@@ -99,6 +100,58 @@ std::vector<double> compute_raccess_unpaired_1(const std::string& seq, int max_s
 	};
 	pm.compute_prob(block);
 	return unpaired;
+}
+
+void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, int p, int q) {
+	using SM = Raccess::ScoreModelEnergy;
+	using Api = Raccess::EnergyModelApi;
+	SM sm;
+	sm.initialize();
+
+	SM::Seq codes;
+	codes.resize(seq.size());
+	::Alpha::str_to_ncodes(seq.begin(), seq.end(), codes.begin());
+	sm.set_seq(codes);
+
+	Api api(sm);
+
+	const int a = i + 1;
+	const int b = j + 1;
+
+	const auto report = [&](const char* label, double via_closed, double direct) {
+		const double diff = via_closed - direct;
+		std::fprintf(stderr, "%s (%d,%d): closed=%g direct=%g diff=%g\n", label, i, j, via_closed, direct, diff);
+	};
+
+	report("hairpin",
+	       api.score_to_energy(api.log_boltz_hairpin_closed(a, b)),
+	       api.score_to_energy(api.log_boltz_hairpin(a + 1, b - 1)));
+
+	report("multi_close",
+	       api.score_to_energy(api.log_boltz_multi_close_closed(a, b)),
+	       api.score_to_energy(api.log_boltz_multi_close(a + 1, b - 1)));
+
+	report("multi_open",
+	       api.score_to_energy(api.log_boltz_multi_open_closed(a, b)),
+	       api.score_to_energy(api.log_boltz_multi_open(a - 1, b)));
+
+	report("external",
+	       api.score_to_energy(api.log_boltz_outer_branch_closed(a, b)),
+	       api.score_to_energy(api.log_boltz_outer_branch(a - 1, b)));
+
+	if (has_loop) {
+		const int c = p + 1;
+		const int d = q + 1;
+		const double via_closed = api.score_to_energy(api.log_boltz_loop_closed(a, b, c, d));
+		double direct = 0.0;
+		if ((c == (a + 1)) && (d == (b - 1))) {
+			direct = api.score_to_energy(api.log_boltz_stack(a, b + 1));
+		} else {
+			direct = api.score_to_energy(api.log_boltz_interior(a + 1, b - 1, c, d));
+		}
+		std::fprintf(stderr, "loop (%d,%d,%d,%d): closed=%g direct=%g diff=%g\n",
+		             i, j, p, q, via_closed, direct, via_closed - direct);
+	}
 }
 
 } // namespace lcr
