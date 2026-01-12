@@ -14,6 +14,7 @@ int main(int argc, char **argv){
 		cout << "Options:" << endl;
 		cout << "  -e                 Output ensemble energy" << endl;
 		cout << "  --logz             Output logZ (alpha_O[last])" << endl;
+		cout << "  --logz-raccess     Output Raccess logZ (ProbModel partition coeff)" << endl;
 		cout << "  --compare-unpaired Compare 1 - p(stem) with Raccess p([i:i], unpaired)" << endl;
 		cout << "  --max-span <int>   Raccess max span for compare-unpaired (default: seq length)" << endl;
 		cout << "  --energy <model>   Energy model: turner2004 (default) or turner1999" << endl;
@@ -31,6 +32,7 @@ int main(int argc, char **argv){
 	// get options
 	bool output_energy = false;
 	bool output_logz = false;
+	bool output_logz_raccess = false;
 	bool compare_unpaired = false;
 	int compare_max_span = 0;
 	bool debug_local = false;
@@ -46,6 +48,8 @@ int main(int argc, char **argv){
 			output_energy = true;
 		}else if(strcmp(argv[i], "--logz") == 0){
 			output_logz = true;
+		}else if(strcmp(argv[i], "--logz-raccess") == 0){
+			output_logz_raccess = true;
 		}else if(strcmp(argv[i], "--compare-unpaired") == 0){
 			compare_unpaired = true;
 		}else if(strcmp(argv[i], "--max-span") == 0){
@@ -193,6 +197,14 @@ int main(int argc, char **argv){
 
 		if(output_energy) printf("G_ensemble: %.2lf\n", lcr.get_energy_ensemble());
 		if(output_logz) printf("logZ: %.10f\n", lcr.get_logZ());
+		if(output_logz_raccess){
+			const int max_span = (compare_max_span > 0 ? compare_max_span : static_cast<int>(seq[i].size() + 1));
+			const double logz_raccess = lcr::compute_raccess_logz(seq[i], max_span);
+			printf("raccess_logZ: %.10f\n", logz_raccess);
+			if(output_logz){
+				printf("logZ_diff: %.10g\n", lcr.get_logZ() - logz_raccess);
+			}
+		}
 		if(compare_unpaired){
 			const int max_span = (compare_max_span > 0 ? compare_max_span : static_cast<int>(seq[i].size() + 1));
 			const auto unpaired = lcr::compute_raccess_unpaired_1(seq[i], max_span);

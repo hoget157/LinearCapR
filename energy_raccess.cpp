@@ -154,4 +154,28 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 	}
 }
 
+double compute_raccess_logz(const std::string& seq, int max_span) {
+	using SM = Raccess::ScoreModelEnergy;
+	using PM = Raccess::ProbModel<SM>;
+	SM sm;
+	sm.initialize();
+
+	SM::Seq codes;
+	codes.resize(seq.size());
+	::Alpha::str_to_ncodes(seq.begin(), seq.end(), codes.begin());
+	sm.set_seq(codes);
+
+	PM pm;
+	pm.set_score_model(sm);
+	pm.set_max_span(max_span);
+	pm.set_prob_thr(0);
+	PM::VI acc_lens;
+	acc_lens.push_back(1);
+	pm.set_acc_lens(acc_lens);
+
+	auto no_op = [](int, int, double) {};
+	pm.compute_prob(no_op);
+	return pm.partition_coeff();
+}
+
 } // namespace lcr
