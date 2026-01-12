@@ -3,6 +3,7 @@
 #include "dp_table_api.hpp"
 #include "seq_utils.hpp"
 #include "energy_linearcapr.hpp"
+#include "energy_raccess.hpp"
 
 #include <fstream>
 #include <algorithm>
