@@ -23,6 +23,7 @@ public:
 	const vector<Float>& get_prob_stem() const;
 	void debug_stem_pairs(int idx, int topn) const;
 	void debug_pair(int i, int j) const;
+	void debug_prob(int idx) const;
 private:
 	const energy::Params &params;
 	const int beam_size;

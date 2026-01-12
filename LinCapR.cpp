@@ -516,5 +516,27 @@ void LinCapR::debug_pair(int i, int j) const {
 	}
 }
 
+void LinCapR::debug_prob(int idx) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_prob: idx out of range: " << idx << endl;
+		return;
+	}
+	const double b = prob_B[idx];
+	const double h = prob_H[idx];
+	const double in = prob_I[idx];
+	const double m = prob_M[idx];
+	const double e = prob_E[idx];
+	const double s = prob_S[idx];
+	const double sum = b + h + in + m + e + s;
+	cerr << "debug_prob i=" << idx
+	     << " B=" << b
+	     << " H=" << h
+	     << " I=" << in
+	     << " M=" << m
+	     << " E=" << e
+	     << " S=" << s
+	     << " sum=" << sum << endl;
+}
+
 
 // calc energy of hairpin loop [i, j]

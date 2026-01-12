@@ -24,6 +24,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-stem i     Print top paired positions contributing to Stem[i]" << endl;
 		cout << "  --debug-top n      Number of top pairs to print (default: 10)" << endl;
 		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
+		cout << "  --debug-prob i     Print raw profile values at position i" << endl;
 		cout << "  --no-normalize     Disable per-position profile normalization" << endl;
 		cout << "  --norm-warn eps    Warn when sum of probs differs from 1 by eps (default: 1e-6)" << endl;
 		return 1;
@@ -52,6 +53,8 @@ int main(int argc, char **argv){
 	bool debug_pair = false;
 	int debug_pair_i = -1;
 	int debug_pair_j = -1;
+	bool debug_prob = false;
+	int debug_prob_i = -1;
 	bool normalize_profiles = true;
 	double normalize_warn_eps = 1e-6;
 	energy::Model energy_model = energy::Model::Turner2004;
@@ -126,6 +129,13 @@ int main(int argc, char **argv){
 			debug_pair_i = stoi(arg.substr(0, comma));
 			debug_pair_j = stoi(arg.substr(comma + 1));
 			debug_pair = true;
+		}else if(strcmp(argv[i], "--debug-prob") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-prob requires i" << endl;
+				return 1;
+			}
+			debug_prob_i = atoi(argv[++i]);
+			debug_prob = true;
 		}else if(strcmp(argv[i], "--no-normalize") == 0){
 			normalize_profiles = false;
 		}else if(strcmp(argv[i], "--norm-warn") == 0){
@@ -219,6 +229,9 @@ int main(int argc, char **argv){
 			debug_pair_i = stoi(arg.substr(0, comma));
 			debug_pair_j = stoi(arg.substr(comma + 1));
 			debug_pair = true;
+		}else if(strncmp(argv[i], "--debug-prob=", 13) == 0){
+			debug_prob_i = atoi(argv[i] + 13);
+			debug_prob = true;
 		}else if(strncmp(argv[i], "--norm-warn=", 12) == 0){
 			normalize_warn_eps = atof(argv[i] + 12);
 		}else{
@@ -303,6 +316,9 @@ int main(int argc, char **argv){
 		}
 		if(debug_pair){
 			lcr.debug_pair(debug_pair_i, debug_pair_j);
+		}
+		if(debug_prob){
+			lcr.debug_prob(debug_prob_i);
 		}
 
 		lcr.clear();
