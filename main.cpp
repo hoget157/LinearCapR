@@ -24,6 +24,8 @@ int main(int argc, char **argv){
 		cout << "  --debug-stem i     Print top paired positions contributing to Stem[i]" << endl;
 		cout << "  --debug-top n      Number of top pairs to print (default: 10)" << endl;
 		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
+		cout << "  --no-normalize     Disable per-position profile normalization" << endl;
+		cout << "  --norm-warn eps    Warn when sum of probs differs from 1 by eps (default: 1e-6)" << endl;
 		return 1;
 	}
 
@@ -50,6 +52,8 @@ int main(int argc, char **argv){
 	bool debug_pair = false;
 	int debug_pair_i = -1;
 	int debug_pair_j = -1;
+	bool normalize_profiles = true;
+	double normalize_warn_eps = 1e-6;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
@@ -122,6 +126,14 @@ int main(int argc, char **argv){
 			debug_pair_i = stoi(arg.substr(0, comma));
 			debug_pair_j = stoi(arg.substr(comma + 1));
 			debug_pair = true;
+		}else if(strcmp(argv[i], "--no-normalize") == 0){
+			normalize_profiles = false;
+		}else if(strcmp(argv[i], "--norm-warn") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --norm-warn requires eps" << endl;
+				return 1;
+			}
+			normalize_warn_eps = atof(argv[++i]);
 		}else if(strcmp(argv[i], "--energy") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
@@ -207,6 +219,8 @@ int main(int argc, char **argv){
 			debug_pair_i = stoi(arg.substr(0, comma));
 			debug_pair_j = stoi(arg.substr(comma + 1));
 			debug_pair = true;
+		}else if(strncmp(argv[i], "--norm-warn=", 12) == 0){
+			normalize_warn_eps = atof(argv[i] + 12);
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
@@ -232,7 +246,7 @@ int main(int argc, char **argv){
 
 	// run LinCapR
 	const int s = seq.size();
-	LinCapR lcr(beam_size, energy_model, engine);
+	LinCapR lcr(beam_size, energy_model, engine, normalize_profiles, normalize_warn_eps);
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);

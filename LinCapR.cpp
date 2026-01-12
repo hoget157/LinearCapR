@@ -8,10 +8,13 @@
 #include <fstream>
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
-LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine)
+LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine, bool normalize_profiles, Float normalize_warn_eps)
 	: params(energy::get_params(model)),
-	  beam_size(beam_size) {
+	  beam_size(beam_size),
+	  normalize_profiles(normalize_profiles),
+	  normalize_warn_eps(normalize_warn_eps) {
 	switch (engine) {
 	case EnergyEngine::Raccess:
 		_energy = lcr::make_raccess_energy();
@@ -408,7 +411,10 @@ void LinCapR::calc_profile(){
 			if(probs[j]->at(i) < 0) probs[j]->at(i) = 0;
 			sum_prob_i += probs[j]->at(i);
 		}
-
+		if(fabs(sum_prob_i - 1.0) > normalize_warn_eps){
+			cerr << "warn: prob_sum[" << i << "]=" << sum_prob_i << endl;
+		}
+		if(!normalize_profiles) continue;
 		// sum of probabilities to 1
 		for(int j = 0; j < NPROBS; j++) probs[j]->at(i) /= sum_prob_i;
 	}

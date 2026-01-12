@@ -12,7 +12,9 @@ public:
 	enum class EnergyEngine { LinearCapR, Raccess };
 	LinCapR(int beam_size,
 	       energy::Model model = energy::Model::Turner2004,
-	       EnergyEngine engine = EnergyEngine::LinearCapR);
+	       EnergyEngine engine = EnergyEngine::LinearCapR,
+	       bool normalize_profiles = true,
+	       Float normalize_warn_eps = 1e-6);
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
@@ -24,6 +26,8 @@ public:
 private:
 	const energy::Params &params;
 	const int beam_size;
+	const bool normalize_profiles;
+	const Float normalize_warn_eps;
 	
 	string seq;
 
