@@ -33,9 +33,6 @@ private:
 	// calculated structural profiles
 	vector<Float> prob_B, prob_I, prob_H, prob_M, prob_E, prob_S, *probs[NPROBS];
 
-	// functions for pruning
-	int quickselect_partition(vector<Float>&, const int, const int) const;
-	Float quickselect(vector<Float>&, const int, const int, const int) const;
 	Float prune(Map<int, Float>&) const;
 
 	// executable functions

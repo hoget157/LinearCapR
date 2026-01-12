@@ -1,4 +1,5 @@
 #include "LinCapR.hpp"
+#include "beam_prune.hpp"
 
 #include <fstream>
 #include <algorithm>
@@ -11,62 +12,12 @@ LinCapR::LinCapR(int beam_size, energy::Model model)
 }
 
 
-// partite [lower, upper) and small scores are in [lower, split]
-int LinCapR::quickselect_partition(vector<Float> &scores, const int lower, const int upper) const{
-	const Float pivot = scores[upper - 1];
-	int i = lower, j = upper - 1;
-	while(i < j){
-		while (scores[i] < pivot) i++;
-        while (scores[j] > pivot) j--;
-        if (scores[i] == scores[j]) i++;
-        else if (i < j) swap(scores[i], scores[j]);
-	}
-	return j;
-}
-
-
-// returns k-th(1-indexed) smallest score in [lower, upper)
-Float LinCapR::quickselect(vector<Float> &scores, const int lower, const int upper, const int k) const{
-	if(upper - lower == 1) return scores[lower];
-	const int split = quickselect_partition(scores, lower, upper);
-	const int length = split - lower + 1;
-	if(length == k) return scores[split];
-	if(k < length) return quickselect(scores, lower, split, k);
-	return quickselect(scores, split + 1, upper, k - length);
-}
-
-
 // prune top-k states
 Float LinCapR::prune(Map<int, Float> &states) const{
-	if(beam_size == 0 || (int)states.size() <= beam_size) return -INF;
-	
-	// extract scores
-	vector<Float> scores;
-	for(const auto [i, score] : states){
-		// bias
-		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
-        scores.push_back(new_score);
-	}
-
-	// threshold
-	const Float threshold = quickselect(scores, 0, scores.size(), scores.size() - beam_size);
-
-	// erase low-scored states
-	for(auto it = states.begin(); it != states.end();){
-		const auto [i, score] = *it;
-		const Float new_score = (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
-		if(new_score <= threshold){
-			// unorderd_map
-			it = states.erase(it);
-			// google hash
-			// states.erase(it++);
-		}
-		else it++;
-	}
-	// google hash
-	// states.resize(0);
-
-	return threshold;
+	return lcr::beam::prune_states(states, beam_size,
+				       [this](const int i, const Float score) {
+					 return (i >= 1 ? alpha_O[i - 1] : Float(0)) + score;
+				       });
 }
 
 
