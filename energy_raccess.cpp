@@ -117,6 +117,12 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 
 	const int a = i + 1;
 	const int b = j + 1;
+	const int n = static_cast<int>(seq.size());
+
+	const auto base_at = [&](int one_origin) -> char {
+		if(one_origin < 1 || one_origin > n) return 'N';
+		return seq[one_origin - 1];
+	};
 
 	const auto report = [&](const char* label, double via_closed, double direct) {
 		const double diff = via_closed - direct;
@@ -142,6 +148,22 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 	if (has_loop) {
 		const int c = p + 1;
 		const int d = q + 1;
+		const int dp_i = a + 1;
+		const int dp_j = b - 1;
+		std::fprintf(stderr, "loop mapping closed(a,b,c,d)=(%d,%d,%d,%d) dp(i,j,ip,jp)=(%d,%d,%d,%d)\n",
+		             a, b, c, d, dp_i, dp_j, c, d);
+		std::fprintf(stderr, "  closing pair (a,b) bases=%c,%c inner pair (c,d) bases=%c,%c\n",
+		             base_at(a), base_at(b), base_at(c), base_at(d));
+		std::fprintf(stderr,
+		             "  padded bases: seq(i)=%c seq(i+1)=%c seq(j)=%c seq(j+1)=%c seq(ip)=%c seq(ip+1)=%c seq(jp)=%c seq(jp+1)=%c\n",
+		             base_at(dp_i),
+		             base_at(dp_i + 1),
+		             base_at(dp_j),
+		             base_at(dp_j + 1),
+		             base_at(c),
+		             base_at(c + 1),
+		             base_at(d),
+		             base_at(d + 1));
 		const double via_closed = api.score_to_energy(api.log_boltz_loop_closed(a, b, c, d));
 		double direct = 0.0;
 		if ((c == (a + 1)) && (d == (b - 1))) {
