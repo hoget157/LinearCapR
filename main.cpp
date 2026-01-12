@@ -18,6 +18,8 @@ int main(int argc, char **argv){
 		cout << "  --max-span <int>   Raccess max span for compare-unpaired (default: seq length)" << endl;
 		cout << "  --energy <model>   Energy model: turner2004 (default) or turner1999" << endl;
 		cout << "  --engine <name>    Energy engine: lincapr (default) or raccess" << endl;
+		cout << "  --debug-local i,j  Compare closed-wrapper vs direct Raccess energies at (i,j) (0-origin)" << endl;
+		cout << "  --debug-loop p,q   Optional inner pair for loop energy check (0-origin)" << endl;
 		return 1;
 	}
 
@@ -31,6 +33,12 @@ int main(int argc, char **argv){
 	bool output_logz = false;
 	bool compare_unpaired = false;
 	int compare_max_span = 0;
+	bool debug_local = false;
+	bool debug_loop = false;
+	int debug_i = -1;
+	int debug_j = -1;
+	int debug_p = -1;
+	int debug_q = -1;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
@@ -46,6 +54,34 @@ int main(int argc, char **argv){
 				return 1;
 			}
 			compare_max_span = atoi(argv[++i]);
+		}else if(strcmp(argv[i], "--debug-local") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-local requires i,j" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-local expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_i = stoi(arg.substr(0, comma));
+			debug_j = stoi(arg.substr(comma + 1));
+			debug_local = true;
+		}else if(strcmp(argv[i], "--debug-loop") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-loop requires p,q" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-loop expects p,q (0-origin)" << endl;
+				return 1;
+			}
+			debug_p = stoi(arg.substr(0, comma));
+			debug_q = stoi(arg.substr(comma + 1));
+			debug_loop = true;
 		}else if(strcmp(argv[i], "--energy") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
@@ -96,6 +132,26 @@ int main(int argc, char **argv){
 			}
 		}else if(strncmp(argv[i], "--max-span=", 11) == 0){
 			compare_max_span = atoi(argv[i] + 11);
+		}else if(strncmp(argv[i], "--debug-local=", 14) == 0){
+			const string arg = argv[i] + 14;
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-local expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_i = stoi(arg.substr(0, comma));
+			debug_j = stoi(arg.substr(comma + 1));
+			debug_local = true;
+		}else if(strncmp(argv[i], "--debug-loop=", 13) == 0){
+			const string arg = argv[i] + 13;
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-loop expects p,q (0-origin)" << endl;
+				return 1;
+			}
+			debug_p = stoi(arg.substr(0, comma));
+			debug_q = stoi(arg.substr(comma + 1));
+			debug_loop = true;
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
@@ -157,6 +213,13 @@ int main(int argc, char **argv){
 			}
 			printf("unpaired_check: max_abs_diff=%.6g at i=%d (raccess_unpaired=%.6g, 1-p_stem=%.6g)\n",
 			       max_diff, max_i, max_unp, max_from_stem);
+		}
+
+		if(debug_local){
+			if(engine != LinCapR::EnergyEngine::Raccess){
+				cout << "Warning: --debug-local uses the Raccess energy model regardless of --engine" << endl;
+			}
+			lcr::debug_raccess_local(seq[i], debug_i, debug_j, debug_loop, debug_p, debug_q);
 		}
 
 		lcr.clear();
