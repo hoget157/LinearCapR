@@ -23,6 +23,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-loop p,q   Optional inner pair for loop energy check (0-origin)" << endl;
 		cout << "  --debug-stem i     Print top paired positions contributing to Stem[i]" << endl;
 		cout << "  --debug-top n      Number of top pairs to print (default: 10)" << endl;
+		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
 		return 1;
 	}
 
@@ -46,6 +47,9 @@ int main(int argc, char **argv){
 	bool debug_stem = false;
 	int debug_stem_i = -1;
 	int debug_top = 10;
+	bool debug_pair = false;
+	int debug_pair_i = -1;
+	int debug_pair_j = -1;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
 	for(int i = 4; i < argc; i++){
@@ -104,6 +108,20 @@ int main(int argc, char **argv){
 				return 1;
 			}
 			debug_top = atoi(argv[++i]);
+		}else if(strcmp(argv[i], "--debug-pair") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-pair requires i,j" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-pair expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_pair_i = stoi(arg.substr(0, comma));
+			debug_pair_j = stoi(arg.substr(comma + 1));
+			debug_pair = true;
 		}else if(strcmp(argv[i], "--energy") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --energy requires an argument (turner2004 or turner1999)" << endl;
@@ -179,6 +197,16 @@ int main(int argc, char **argv){
 			debug_stem = true;
 		}else if(strncmp(argv[i], "--debug-top=", 12) == 0){
 			debug_top = atoi(argv[i] + 12);
+		}else if(strncmp(argv[i], "--debug-pair=", 13) == 0){
+			const string arg = argv[i] + 13;
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-pair expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_pair_i = stoi(arg.substr(0, comma));
+			debug_pair_j = stoi(arg.substr(comma + 1));
+			debug_pair = true;
 		}else{
 			cout << "Error: invalid option: " << argv[i] << endl;
 			return 1;
@@ -258,6 +286,9 @@ int main(int argc, char **argv){
 		}
 		if(debug_stem){
 			lcr.debug_stem_pairs(debug_stem_i, debug_top);
+		}
+		if(debug_pair){
+			lcr.debug_pair(debug_pair_i, debug_pair_j);
 		}
 
 		lcr.clear();

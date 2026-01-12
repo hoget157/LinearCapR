@@ -422,6 +422,7 @@ void LinCapR::debug_stem_pairs(int idx, int topn) const {
 	if(topn <= 0) topn = 1;
 
 	struct Item {
+		int i;
 		int j;
 		double prob;
 	};
@@ -430,15 +431,34 @@ void LinCapR::debug_stem_pairs(int idx, int topn) const {
 
 	const double logZ = alpha_O[seq_n - 1];
 	double total = 0.0;
+	int missing_beta = 0;
 
+	// idx as left endpoint (i = idx, j varies)
 	for(int j = 0; j < seq_n; j++){
 		auto it_a = alpha_S[j].find(idx);
 		if(it_a == alpha_S[j].end()) continue;
 		auto it_b = beta_S[j].find(idx);
-		if(it_b == beta_S[j].end()) continue;
+		if(it_b == beta_S[j].end()){
+			missing_beta++;
+			continue;
+		}
 		const double prob = exp(it_a->second + it_b->second - logZ);
 		if(prob <= 0.0) continue;
-		items.push_back({j, prob});
+		items.push_back({idx, j, prob});
+		total += prob;
+	}
+
+	// idx as right endpoint (j = idx, i varies)
+	for(const auto& kv : alpha_S[idx]){
+		const int i = kv.first;
+		auto it_b = beta_S[idx].find(i);
+		if(it_b == beta_S[idx].end()){
+			missing_beta++;
+			continue;
+		}
+		const double prob = exp(kv.second + it_b->second - logZ);
+		if(prob <= 0.0) continue;
+		items.push_back({i, idx, prob});
 		total += prob;
 	}
 
@@ -448,10 +468,45 @@ void LinCapR::debug_stem_pairs(int idx, int topn) const {
 
 	cerr << "debug_stem_pairs i=" << idx
 	     << " total=" << total
-	     << " prob_S=" << prob_S[idx] << endl;
+	     << " prob_S=" << prob_S[idx]
+	     << " missing_beta=" << missing_beta << endl;
 	const int limit = min(topn, static_cast<int>(items.size()));
 	for(int k = 0; k < limit; k++){
-		cerr << "  pair (" << idx << "," << items[k].j << ") prob=" << items[k].prob << endl;
+		cerr << "  pair (" << items[k].i << "," << items[k].j << ") prob=" << items[k].prob << endl;
+	}
+}
+
+void LinCapR::debug_pair(int i, int j) const {
+	if(i < 0 || j < 0 || i >= seq_n || j >= seq_n || i >= j){
+		cerr << "debug_pair: invalid i,j: " << i << "," << j << endl;
+		return;
+	}
+	const double logZ = alpha_O[seq_n - 1];
+	const bool pairable = can_pair(i, j);
+	cerr << "debug_pair (" << i << "," << j << ")"
+	     << " bases=" << seq[i] << "," << seq[j]
+	     << " can_pair=" << pairable << endl;
+
+	auto it_a = alpha_S[j].find(i);
+	auto it_b = beta_S[j].find(i);
+	if(it_a == alpha_S[j].end()){
+		cerr << "  alpha_S missing" << endl;
+	} else {
+		cerr << "  alpha_S=" << it_a->second << endl;
+	}
+	if(it_b == beta_S[j].end()){
+		cerr << "  beta_S missing" << endl;
+	} else {
+		cerr << "  beta_S=" << it_b->second << endl;
+	}
+	if(it_a != alpha_S[j].end() && it_b != beta_S[j].end()){
+		const double prob = exp(it_a->second + it_b->second - logZ);
+		cerr << "  pair_prob=" << prob << endl;
+	}
+
+	if(i - 1 >= 0 && j + 1 < seq_n){
+		const double loop_energy = _energy->energy_loop(i - 1, j + 1, i, j);
+		cerr << "  energy_loop(i-1,j+1,i,j)=" << loop_energy << endl;
 	}
 }
 
