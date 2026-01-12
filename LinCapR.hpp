@@ -45,17 +45,6 @@ private:
 	void calc_outside();
 	void calc_profile();
 
-	// calc each energy
-	Float energy_hairpin(const int, const int) const;
-	Float energy_loop(const int, const int, const int, const int) const;
-	Float energy_external(const int, const int) const;
-	Float energy_external_unpaired(const int, const int) const;
-	Float energy_multi_unpaired(const int, const int) const;
-	Float energy_multi_closing(const int, const int) const;
-	Float energy_multi_bif(const int, const int) const;
-
-	int special_hairpin(const int, const int) const;
-
 	// returns whether base (i, j) can form pair 
 	inline bool can_pair(const int i, const int j) const{
 		return (BP_pair[seq_int[i]][seq_int[j]] > 0);
