@@ -13,7 +13,7 @@ LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine)
 	  beam_size(beam_size) {
 	switch (engine) {
 	case EnergyEngine::Raccess:
-		_energy.reset(new lcr::RaccessEnergyModel());
+		_energy = lcr::make_raccess_energy();
 		break;
 	case EnergyEngine::LinearCapR:
 	default:
