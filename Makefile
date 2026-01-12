@@ -48,6 +48,7 @@ else
 		rm -rf "$(OBJDIR)"; \
 	fi
 
-run: 
-	./LinCapR  ./test.fa test2.out 100 -e --energy turner2004 --logz --engine raccess --compare-unpaired
+run_debug: 
+	./LinCapR  ./test.fa test2.out 100 -e --energy turner2004 --logz --engine raccess --compare-unpaired \
+	 --debug-local 34,46 --debug-loop 35,45
 endif
