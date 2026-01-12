@@ -385,7 +385,9 @@ void LinCapR::calc_profile(){
 	// S
 	for(int j = 0; j < seq_n; j++){
 		for(const auto [i, score] : alpha_S[j]){
-			const Float new_score = exp(score + beta_S[j][i] - logZ);
+			auto it_b = beta_S[j].find(i);
+			if(it_b == beta_S[j].end()) continue;
+			const Float new_score = exp(score + it_b->second - logZ);
 			prob_S[i] += new_score;
 			prob_S[j] += new_score;
 		}
