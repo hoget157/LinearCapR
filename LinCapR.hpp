@@ -19,6 +19,7 @@ public:
 	Float get_energy_ensemble() const;
 	Float get_logZ() const;
 	const vector<Float>& get_prob_stem() const;
+	void debug_stem_pairs(int idx, int topn) const;
 private:
 	const energy::Params &params;
 	const int beam_size;

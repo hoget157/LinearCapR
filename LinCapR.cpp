@@ -412,5 +412,46 @@ void LinCapR::calc_profile(){
 	}
 }
 
+void LinCapR::debug_stem_pairs(int idx, int topn) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_stem_pairs: idx out of range: " << idx << endl;
+		return;
+	}
+	if(topn <= 0) topn = 1;
+
+	struct Item {
+		int j;
+		double prob;
+	};
+	vector<Item> items;
+	items.reserve(seq_n);
+
+	const double logZ = alpha_O[seq_n - 1];
+	double total = 0.0;
+
+	for(int j = 0; j < seq_n; j++){
+		auto it_a = alpha_S[j].find(idx);
+		if(it_a == alpha_S[j].end()) continue;
+		auto it_b = beta_S[j].find(idx);
+		if(it_b == beta_S[j].end()) continue;
+		const double prob = exp(it_a->second + it_b->second - logZ);
+		if(prob <= 0.0) continue;
+		items.push_back({j, prob});
+		total += prob;
+	}
+
+	sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+		return a.prob > b.prob;
+	});
+
+	cerr << "debug_stem_pairs i=" << idx
+	     << " total=" << total
+	     << " prob_S=" << prob_S[idx] << endl;
+	const int limit = min(topn, static_cast<int>(items.size()));
+	for(int k = 0; k < limit; k++){
+		cerr << "  pair (" << idx << "," << items[k].j << ") prob=" << items[k].prob << endl;
+	}
+}
+
 
 // calc energy of hairpin loop [i, j]
