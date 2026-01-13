@@ -27,6 +27,8 @@ int main(int argc, char **argv){
 		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
 		cout << "  --debug-prob i     Print raw profile values at position i" << endl;
 		cout << "  --debug-internal i Print top internal-loop contributions covering i" << endl;
+		cout << "  --debug-multi i,j  Print multiloop unpaired energy for range (0-origin)" << endl;
+		cout << "  --debug-multi-prob i  Print multiloop probability contributions at i" << endl;
 		cout << "  --no-fast-logsumexp Disable polynomial logsumexp approximation" << endl;
 		cout << "  --no-normalize     Disable per-position profile normalization" << endl;
 		cout << "  --norm-warn eps    Warn when sum of probs differs from 1 by eps (default: 1e-6)" << endl;
@@ -60,6 +62,12 @@ int main(int argc, char **argv){
 	int debug_prob_i = -1;
 	bool debug_internal = false;
 	int debug_internal_i = -1;
+	bool debug_multi = false;
+	int debug_multi_i = -1;
+	int debug_multi_j = -1;
+	bool debug_multi_prob = false;
+	int debug_multi_prob_i = -1;
+	int debug_multi_prob_top = 10;
 	bool normalize_profiles = true;
 	bool disable_fast_logsumexp = false;
 	double normalize_warn_eps = 1e-6;
@@ -149,6 +157,33 @@ int main(int argc, char **argv){
 			}
 			debug_internal_i = atoi(argv[++i]);
 			debug_internal = true;
+		}else if(strcmp(argv[i], "--debug-multi") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-multi requires i,j" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-multi expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_multi_i = stoi(arg.substr(0, comma));
+			debug_multi_j = stoi(arg.substr(comma + 1));
+			debug_multi = true;
+		}else if(strcmp(argv[i], "--debug-multi-prob") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-multi-prob requires i" << endl;
+				return 1;
+			}
+			debug_multi_prob_i = atoi(argv[++i]);
+			debug_multi_prob = true;
+		}else if(strcmp(argv[i], "--debug-multi-prob-top") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-multi-prob-top requires n" << endl;
+				return 1;
+			}
+			debug_multi_prob_top = atoi(argv[++i]);
 		}else if(strcmp(argv[i], "--no-fast-logsumexp") == 0){
 			disable_fast_logsumexp = true;
 		}else if(strcmp(argv[i], "--no-normalize") == 0){
@@ -250,6 +285,21 @@ int main(int argc, char **argv){
 		}else if(strncmp(argv[i], "--debug-internal=", 17) == 0){
 			debug_internal_i = atoi(argv[i] + 17);
 			debug_internal = true;
+		}else if(strncmp(argv[i], "--debug-multi=", 13) == 0){
+			const string arg = argv[i] + 13;
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-multi expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_multi_i = stoi(arg.substr(0, comma));
+			debug_multi_j = stoi(arg.substr(comma + 1));
+			debug_multi = true;
+		}else if(strncmp(argv[i], "--debug-multi-prob=", 19) == 0){
+			debug_multi_prob_i = atoi(argv[i] + 19);
+			debug_multi_prob = true;
+		}else if(strncmp(argv[i], "--debug-multi-prob-top=", 23) == 0){
+			debug_multi_prob_top = atoi(argv[i] + 23);
 		}else if(strncmp(argv[i], "--norm-warn=", 12) == 0){
 			normalize_warn_eps = atof(argv[i] + 12);
 		}else{
@@ -343,6 +393,16 @@ int main(int argc, char **argv){
 		}
 		if(debug_internal){
 			lcr.debug_internal(debug_internal_i, debug_top);
+		}
+		if(debug_multi){
+			if(engine != LinCapR::EnergyEngine::Raccess){
+				cout << "Warning: --debug-multi uses the Raccess energy model regardless of --engine" << endl;
+			}
+			lcr.debug_multi_unpaired(debug_multi_i, debug_multi_j);
+			lcr::debug_raccess_multi_unpaired(seq[i], debug_multi_i, debug_multi_j);
+		}
+		if(debug_multi_prob){
+			lcr.debug_multi_prob(debug_multi_prob_i, debug_multi_prob_top);
 		}
 
 		lcr.clear();

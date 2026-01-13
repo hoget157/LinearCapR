@@ -25,6 +25,8 @@ public:
 	void debug_pair(int i, int j) const;
 	void debug_prob(int idx) const;
 	void debug_internal(int idx, int topn) const;
+	void debug_multi_unpaired(int i, int j) const;
+	void debug_multi_prob(int idx, int topn) const;
 private:
 	const energy::Params &params;
 	const int beam_size;

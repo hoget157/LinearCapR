@@ -617,5 +617,95 @@ void LinCapR::debug_internal(int idx, int topn) const {
 	}
 }
 
+void LinCapR::debug_multi_unpaired(int i, int j) const {
+	if(i < 0 || j < 0 || i >= seq_n || j >= seq_n || i > j){
+		cerr << "debug_multi_unpaired: invalid range: " << i << "," << j << endl;
+		return;
+	}
+	const int len_closed = j - i + 1;
+	const int len_half = j - i;
+	const double energy = _energy->energy_multi_unpaired(i, j);
+	cerr << "debug_multi_unpaired (i,j)=(" << i << "," << j << ")"
+	     << " len_closed=" << len_closed
+	     << " len_half=" << len_half
+	     << " energy=" << energy
+	     << endl;
+}
+
+void LinCapR::debug_multi_prob(int idx, int topn) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_multi_prob: idx out of range: " << idx << endl;
+		return;
+	}
+	if(topn <= 0) topn = 1;
+	const Float logZ = alpha_O[seq_n - 1];
+	double from_mb = 0.0;
+	double from_s = 0.0;
+
+	struct Item {
+		int j;
+		int q;
+		int k;
+		double prob;
+	};
+	vector<Item> items;
+
+	// Contribution from alpha_MB / beta_M (calc_profile M part 1)
+	for(int k = 0; k < seq_n; k++){
+		for(const auto [p, score] : alpha_MB[k]){
+			const int j_min = max(0, p - MAXLOOP);
+			for(int j = p - 1; j >= j_min; j--){
+				if(!lcr::dp::contains(beta_M, j, k)) continue;
+				if(idx < j || idx > (p - 1)) continue;
+				auto it_b = beta_M[k].find(j);
+				if(it_b == beta_M[k].end()) continue;
+				const Float new_score = exp(score + it_b->second
+					- _energy->energy_multi_unpaired(j, p - 1) / _energy->kT()
+					- logZ);
+				from_mb += new_score;
+			}
+		}
+	}
+
+	// Contribution from alpha_S / beta_M2 (calc_profile M part 2)
+	for(int q = 0; q < seq_n; q++){
+		for(const auto [j, score] : alpha_S[q]){
+			const int k_max = min(seq_n - 1, q + MAXLOOP);
+			for(int k = q + 1; k <= k_max; k++){
+				if(!lcr::dp::contains(beta_M2, j, k)) continue;
+				if(idx < (q + 1) || idx > k) continue;
+				auto it_b = beta_M2[k].find(j);
+				if(it_b == beta_M2[k].end()) continue;
+				const Float new_score = exp(score + it_b->second
+					- (_energy->energy_multi_bif(j, q) + _energy->energy_multi_unpaired(q + 1, k)) / _energy->kT()
+					- logZ);
+				from_s += new_score;
+				items.push_back({j, q, k, new_score});
+			}
+		}
+	}
+
+	const double total = from_mb + from_s;
+	sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+		return a.prob > b.prob;
+	});
+
+	cerr << "debug_multi_prob i=" << idx
+	     << " M_total=" << prob_M[idx]
+	     << " M_from_mb=" << from_mb
+	     << " M_from_s=" << from_s
+	     << " M_sum=" << total
+	     << endl;
+
+	const int limit = min(topn, static_cast<int>(items.size()));
+	for(int t = 0; t < limit; t++){
+		const auto& it = items[t];
+		cerr << "  M2 (j,q,k)=(" << it.j << "," << it.q << "," << it.k << ")"
+		     << " prob=" << it.prob
+		     << " range=(" << (it.q + 1) << "," << it.k << ")"
+		     << endl;
+	}
+}
+
 
 // calc energy of hairpin loop [i, j]

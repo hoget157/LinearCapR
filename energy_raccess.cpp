@@ -102,6 +102,28 @@ std::vector<double> compute_raccess_unpaired_1(const std::string& seq, int max_s
 	return unpaired;
 }
 
+void debug_raccess_multi_unpaired(const std::string& seq, int i, int j) {
+	using SM = Raccess::ScoreModelEnergy;
+	using Api = Raccess::EnergyModelApi;
+	SM sm;
+	sm.initialize();
+
+	SM::Seq codes;
+	codes.resize(seq.size());
+	::Alpha::str_to_ncodes(seq.begin(), seq.end(), codes.begin());
+	sm.set_seq(codes);
+
+	Api api(sm);
+
+	const int len_closed = j - i + 1;
+	const int len_half = j - i;
+	const double e_closed = api.score_to_energy(api.log_boltz_multi_extend(0, len_closed));
+	const double e_half = api.score_to_energy(api.log_boltz_multi_extend(0, len_half));
+	std::fprintf(stderr,
+	             "raccess_multi_unpaired (i,j)=(%d,%d) len_closed=%d len_half=%d energy_closed=%g energy_half=%g\n",
+	             i, j, len_closed, len_half, e_closed, e_half);
+}
+
 void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, int p, int q) {
 	using SM = Raccess::ScoreModelEnergy;
 	using Api = Raccess::EnergyModelApi;
