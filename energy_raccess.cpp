@@ -175,7 +175,7 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 		if ((c == (a + 1)) && (d == (b - 1))) {
 			direct = api.score_to_energy(api.log_boltz_stack(a, b + 1));
 		} else {
-			direct = api.score_to_energy(api.log_boltz_interior(a + 1, b - 1, c, d));
+			direct = api.score_to_energy(api.log_boltz_interior(a, b - 1, c - 1, d));
 		}
 		std::fprintf(stderr, "loop (%d,%d,%d,%d): closed=%g direct=%g diff=%g\n",
 		             i, j, p, q, via_closed, direct, via_closed - direct);
