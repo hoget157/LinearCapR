@@ -1,6 +1,7 @@
 #include "LinCapR.hpp"
 #include "FileReader.hpp"
 #include "energy_raccess.hpp"
+#include "dp_table_api.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -26,6 +27,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
 		cout << "  --debug-prob i     Print raw profile values at position i" << endl;
 		cout << "  --debug-internal i Print top internal-loop contributions covering i" << endl;
+		cout << "  --no-fast-logsumexp Disable polynomial logsumexp approximation" << endl;
 		cout << "  --no-normalize     Disable per-position profile normalization" << endl;
 		cout << "  --norm-warn eps    Warn when sum of probs differs from 1 by eps (default: 1e-6)" << endl;
 		return 1;
@@ -59,6 +61,7 @@ int main(int argc, char **argv){
 	bool debug_internal = false;
 	int debug_internal_i = -1;
 	bool normalize_profiles = true;
+	bool disable_fast_logsumexp = false;
 	double normalize_warn_eps = 1e-6;
 	energy::Model energy_model = energy::Model::Turner2004;
 	LinCapR::EnergyEngine engine = LinCapR::EnergyEngine::LinearCapR;
@@ -146,6 +149,8 @@ int main(int argc, char **argv){
 			}
 			debug_internal_i = atoi(argv[++i]);
 			debug_internal = true;
+		}else if(strcmp(argv[i], "--no-fast-logsumexp") == 0){
+			disable_fast_logsumexp = true;
 		}else if(strcmp(argv[i], "--no-normalize") == 0){
 			normalize_profiles = false;
 		}else if(strcmp(argv[i], "--norm-warn") == 0){
@@ -273,6 +278,9 @@ int main(int argc, char **argv){
 	// run LinCapR
 	const int s = seq.size();
 	LinCapR lcr(beam_size, energy_model, engine, normalize_profiles, normalize_warn_eps);
+	if(disable_fast_logsumexp){
+		set_logsumexp_legacy_mode();
+	}
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);
