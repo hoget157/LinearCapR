@@ -237,7 +237,7 @@ void LinCapR::calc_inside(){
 		}
 
 		// SE -> (Hairpin)
-		for(int n = TURN; n <= MAXLOOP; n++){
+		for(int n = TURN; n <= (j + 1); n++){
 			const int i = j - n + 1;
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
 				lcr::dp::update_sum(alpha_SE, i, j, -_energy->energy_hairpin(i - 1, j + 1) / _energy->kT());
