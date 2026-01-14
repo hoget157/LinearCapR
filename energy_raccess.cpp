@@ -153,7 +153,7 @@ void debug_raccess_local(const std::string& seq, int i, int j, bool has_loop, in
 
 	report("hairpin",
 	       api.score_to_energy(api.log_boltz_hairpin_closed(a, b)),
-	       api.score_to_energy(api.log_boltz_hairpin(a + 1, b - 1)));
+	       api.score_to_energy(api.log_boltz_hairpin(a, b - 1)));
 
 	report("multi_close",
 	       api.score_to_energy(api.log_boltz_multi_close_closed(a, b)),
