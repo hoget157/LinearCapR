@@ -540,6 +540,61 @@ void LinCapR::debug_prob(int idx) const {
 	     << " sum=" << sum << endl;
 }
 
+void LinCapR::debug_hairpin(int idx, int topn) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_hairpin: idx out of range: " << idx << endl;
+		return;
+	}
+	if(topn <= 0) topn = 1;
+
+	struct Item {
+		int j;
+		int k;
+		double prob;
+	};
+	vector<Item> items;
+	const double logZ = alpha_O[seq_n - 1];
+
+	for(int k = 0; k < seq_n; k++){
+		for(const auto [j, score] : beta_SE[k]){
+			if(idx < j || idx > k) continue;
+			const int outer_i = j - 1;
+			const int outer_j = k + 1;
+			if(outer_i < 0 || outer_j >= seq_n) continue;
+			const double new_score = exp(score - _energy->energy_hairpin(outer_i, outer_j) / _energy->kT() - logZ);
+			items.push_back({j, k, new_score});
+		}
+	}
+
+	sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+		return a.prob > b.prob;
+	});
+
+	const auto base_at = [&](int pos) -> char {
+		if(pos < 0 || pos >= seq_n) return 'N';
+		return seq[pos];
+	};
+
+	cerr << "debug_hairpin i=" << idx << " candidates=" << items.size() << endl;
+	const int limit = min(topn, static_cast<int>(items.size()));
+	for(int t = 0; t < limit; t++){
+		const auto& it = items[t];
+		const int outer_i = it.j - 1;
+		const int outer_j = it.k + 1;
+		const bool outer_pairable = can_pair(outer_i, outer_j);
+		const bool outer_in_alpha = lcr::dp::contains(alpha_S, outer_i, outer_j);
+		const double loop_energy = _energy->energy_hairpin(outer_i, outer_j);
+		cerr << "  (j,k)=(" << it.j << "," << it.k << ")"
+		     << " prob=" << it.prob
+		     << " outer=(" << outer_i << "," << outer_j << ")"
+		     << " bases=" << base_at(outer_i) << "," << base_at(outer_j)
+		     << " outer_can_pair=" << outer_pairable
+		     << " outer_in_alpha=" << outer_in_alpha
+		     << " hairpinE=" << loop_energy
+		     << endl;
+	}
+}
+
 void LinCapR::debug_internal(int idx, int topn) const {
 	if(idx < 0 || idx >= seq_n){
 		cerr << "debug_internal: idx out of range: " << idx << endl;
