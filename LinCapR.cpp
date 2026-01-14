@@ -595,6 +595,110 @@ void LinCapR::debug_hairpin(int idx, int topn) const {
 	}
 }
 
+void LinCapR::debug_external(int idx, int topn) const {
+	if(idx < 0 || idx >= seq_n){
+		cerr << "debug_external: idx out of range: " << idx << endl;
+		return;
+	}
+	if(topn <= 0) topn = 1;
+	const double logZ = alpha_O[seq_n - 1];
+	const int left = idx - 1;
+	const int right = idx + 1;
+	const double alpha_left = (left >= 0 ? alpha_O[left] : 0.0);
+	const double beta_right = (right < seq_n ? beta_O[right] : 0.0);
+	double e_log = 0.0;
+	if(idx == 0){
+		e_log = beta_O[1] - logZ;
+	}else if(idx == seq_n - 1){
+		e_log = alpha_O[seq_n - 2] - logZ;
+	}else{
+		e_log = alpha_left + beta_right - logZ;
+	}
+	cerr << "debug_external i=" << idx
+	     << " alpha_O[i-1]=" << alpha_left
+	     << " beta_O[i+1]=" << beta_right
+	     << " logZ=" << logZ
+	     << " E=" << exp(e_log)
+	     << endl;
+
+	struct Item {
+		double logw;
+		int i;
+		int j;
+		const char* label;
+	};
+
+	if(left >= 0){
+		vector<Item> items;
+		double total = -INF;
+		if(left - 1 >= 0){
+			const double logw = alpha_O[left - 1]
+				- _energy->energy_external_unpaired(left, left) / _energy->kT();
+			items.push_back({logw, left - 1, left, "O->O"});
+			total = lcr::dp::logsumexp(total, logw);
+		}
+		for(const auto [i, score] : alpha_S[left]){
+			const double logw = (i - 1 >= 0 ? alpha_O[i - 1] : 0.0)
+				+ score
+				- _energy->energy_external(i, left) / _energy->kT();
+			items.push_back({logw, i, left, "O+S"});
+			total = lcr::dp::logsumexp(total, logw);
+		}
+		sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+			return a.logw > b.logw;
+		});
+		cerr << "  alpha_O[" << left << "] logsum=" << total
+		     << " diff=" << (alpha_left - total)
+		     << " items=" << items.size() << endl;
+		const int limit = min(topn, static_cast<int>(items.size()));
+		for(int t = 0; t < limit; t++){
+			const auto& it = items[t];
+			const double w = exp(it.logw - alpha_left);
+			cerr << "    " << it.label
+			     << " (i,j)=(" << it.i << "," << it.j << ")"
+			     << " logw=" << it.logw
+			     << " weight=" << w
+			     << endl;
+		}
+	}
+
+	if(right < seq_n){
+		vector<Item> items;
+		double total = -INF;
+		if(right + 1 < seq_n){
+			const double logw = beta_O[right + 1]
+				- _energy->energy_external_unpaired(right + 1, right + 1) / _energy->kT();
+			items.push_back({logw, right + 1, right, "O->O"});
+			total = lcr::dp::logsumexp(total, logw);
+		}
+		for(int j = right; j < seq_n; j++){
+			auto it = alpha_S[j].find(right);
+			if(it == alpha_S[j].end()) continue;
+			const double logw = it->second
+				+ (j + 1 < seq_n ? beta_O[j + 1] : 0.0)
+				- _energy->energy_external(right, j) / _energy->kT();
+			items.push_back({logw, right, j, "O+S"});
+			total = lcr::dp::logsumexp(total, logw);
+		}
+		sort(items.begin(), items.end(), [](const Item& a, const Item& b){
+			return a.logw > b.logw;
+		});
+		cerr << "  beta_O[" << right << "] logsum=" << total
+		     << " diff=" << (beta_right - total)
+		     << " items=" << items.size() << endl;
+		const int limit = min(topn, static_cast<int>(items.size()));
+		for(int t = 0; t < limit; t++){
+			const auto& it = items[t];
+			const double w = exp(it.logw - beta_right);
+			cerr << "    " << it.label
+			     << " (i,j)=(" << it.i << "," << it.j << ")"
+			     << " logw=" << it.logw
+			     << " weight=" << w
+			     << endl;
+		}
+	}
+}
+
 void LinCapR::debug_internal(int idx, int topn) const {
 	if(idx < 0 || idx >= seq_n){
 		cerr << "debug_internal: idx out of range: " << idx << endl;

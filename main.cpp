@@ -27,6 +27,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-pair i,j   Print alpha/beta/prob for pair (i,j) (0-origin)" << endl;
 		cout << "  --debug-prob i     Print raw profile values at position i" << endl;
 		cout << "  --debug-hairpin i  Print top hairpin contributions covering i" << endl;
+		cout << "  --debug-external i Print external contributions covering i" << endl;
 		cout << "  --debug-internal i Print top internal-loop contributions covering i" << endl;
 		cout << "  --debug-multi i,j  Print multiloop unpaired energy for range (0-origin)" << endl;
 		cout << "  --debug-multi-prob i  Print multiloop probability contributions at i" << endl;
@@ -63,6 +64,8 @@ int main(int argc, char **argv){
 	int debug_prob_i = -1;
 	bool debug_hairpin = false;
 	int debug_hairpin_i = -1;
+	bool debug_external = false;
+	int debug_external_i = -1;
 	bool debug_internal = false;
 	int debug_internal_i = -1;
 	bool debug_multi = false;
@@ -160,6 +163,13 @@ int main(int argc, char **argv){
 			}
 			debug_hairpin_i = atoi(argv[++i]);
 			debug_hairpin = true;
+		}else if(strcmp(argv[i], "--debug-external") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-external requires i" << endl;
+				return 1;
+			}
+			debug_external_i = atoi(argv[++i]);
+			debug_external = true;
 		}else if(strcmp(argv[i], "--debug-internal") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --debug-internal requires i" << endl;
@@ -295,6 +305,9 @@ int main(int argc, char **argv){
 		}else if(strncmp(argv[i], "--debug-hairpin=", 16) == 0){
 			debug_hairpin_i = atoi(argv[i] + 16);
 			debug_hairpin = true;
+		}else if(strncmp(argv[i], "--debug-external=", 16) == 0){
+			debug_external_i = atoi(argv[i] + 16);
+			debug_external = true;
 		}else if(strncmp(argv[i], "--debug-internal=", 17) == 0){
 			debug_internal_i = atoi(argv[i] + 17);
 			debug_internal = true;
@@ -406,6 +419,9 @@ int main(int argc, char **argv){
 		}
 		if(debug_hairpin){
 			lcr.debug_hairpin(debug_hairpin_i, debug_top);
+		}
+		if(debug_external){
+			lcr.debug_external(debug_external_i, debug_top);
 		}
 		if(debug_internal){
 			lcr.debug_internal(debug_internal_i, debug_top);
