@@ -170,7 +170,7 @@ void LinCapR::initialize(const string &seq){
 
 // calc inside variables
 void LinCapR::calc_inside(){
-	alpha_O[0] = 0;
+	alpha_O[0] = - _energy->energy_external_unpaired(0, 0) / _energy->kT();
 
 	for(int j = 0; j < seq_n; j++){
 		// S
@@ -263,10 +263,13 @@ void LinCapR::calc_inside(){
 
 // calc outside variables
 void LinCapR::calc_outside(){
+	beta_O[seq_n - 1] = - _energy->energy_external_unpaired(seq_n - 1, seq_n - 1) / _energy->kT();
 	for(int j = seq_n - 1; j >= 0; j--){
 		// O
 		// O -> O
-		lcr::dp::update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - _energy->energy_external_unpaired(j + 1, j + 1) / _energy->kT());
+		if  (j + 1 < seq_n){
+			lcr::dp::update_sum(beta_O, j, (j + 1 < seq_n ? beta_O[j + 1] : 0) - _energy->energy_external_unpaired(j + 1, j + 1) / _energy->kT());
+		}
 		
 		// O -> O + S
 		for(const auto [i, score] : alpha_S[j]){
@@ -399,10 +402,10 @@ void LinCapR::calc_profile(){
 	}
 
 	// E
-	prob_E[0] = exp(beta_O[1] - logZ);
-	prob_E[seq_n - 1] = exp(alpha_O[seq_n - 2] - logZ);
+	prob_E[0] = exp(beta_O[1] - _energy->energy_external_unpaired(0, 0) / _energy->kT() - logZ);
+	prob_E[seq_n - 1] = exp(alpha_O[seq_n - 2] - _energy->energy_external_unpaired(seq_n - 1, seq_n - 1) / _energy->kT() - logZ);
 	for(int i = 1; i < seq_n - 1; i++){
-		prob_E[i] = exp(alpha_O[i - 1] + beta_O[i + 1] - logZ);
+		prob_E[i] = exp(alpha_O[i - 1] + beta_O[i + 1] - _energy->energy_external_unpaired(i, i) / _energy->kT() - logZ);
 	}
 
 	// regularize
