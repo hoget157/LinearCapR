@@ -19,7 +19,12 @@ namespace lcr {
 
 class RaccessEnergyModelImpl : public EnergyApi {
 public:
-	RaccessEnergyModelImpl() : _sm(), _api(_sm) { _api.initialize(); }
+	RaccessEnergyModelImpl() : _sm(), _api(_sm) {
+		_api.initialize();
+		// Match run_raccess default length_factor for external unpaired penalties.
+		_sm.set_param("external_unpaired", kLengthFactor);
+		_sm.set_param("external_paired_length_factor", kLengthFactor);
+	}
 	void set_sequence(const std::string& seq, const std::vector<int>&) override {
 		SM::Seq codes;
 		codes.resize(seq.size());
@@ -64,6 +69,7 @@ public:
 	}
 
 private:
+	static constexpr double kLengthFactor = -0.541728723;
 	typedef Raccess::ScoreModelEnergy SM;
 	SM _sm;
 	Raccess::EnergyModelApi _api;
