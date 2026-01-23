@@ -35,7 +35,8 @@ public:
 	Float energy_hairpin(int i, int j) const override {
 		const int a = i + 1;
 		const int b = j + 1;
-		return _api.score_to_energy(_api.log_boltz_hairpin_closed(a, b));
+		const double energy = _api.score_to_energy(_api.log_boltz_hairpin_closed(a, b));
+		return energy * debug_kHairpinScale;
 	}
 	Float energy_loop(int i, int j, int p, int q) const override {
 		const int a = i + 1;
@@ -69,6 +70,7 @@ public:
 	}
 
 private:
+	static constexpr double debug_kHairpinScale = 10.0;
 	static constexpr double kLengthFactor = -0.541728723;
 	typedef Raccess::ScoreModelEnergy SM;
 	SM _sm;
