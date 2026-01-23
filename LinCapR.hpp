@@ -29,11 +29,13 @@ public:
 	void debug_internal(int idx, int topn) const;
 	void debug_multi_unpaired(int i, int j) const;
 	void debug_multi_prob(int idx, int topn) const;
+	void set_debug_hairpin_build(bool enable);
 private:
 	const energy::Params &params;
 	const int beam_size;
 	const bool normalize_profiles;
 	const Float normalize_warn_eps;
+	bool debug_hairpin_build_log = false;
 	
 	string seq;
 
