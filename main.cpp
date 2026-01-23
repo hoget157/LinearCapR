@@ -357,6 +357,9 @@ int main(int argc, char **argv){
 	if(disable_fast_logsumexp){
 		set_logsumexp_legacy_mode();
 	}
+	if(debug_hairpin){
+		lcr.set_debug_hairpin_build(true);
+	}
 	for(int i = 0; i < s; i++){
 		// calc structural profile
 		lcr.run(seq[i]);

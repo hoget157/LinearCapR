@@ -28,6 +28,10 @@ LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine, bool n
 	else set_logsumexp_legacy_mode();
 }
 
+void LinCapR::set_debug_hairpin_build(bool enable) {
+	debug_hairpin_build_log = enable;
+}
+
 
 // prune top-k states
 Float LinCapR::prune(Map<int, Float> &states) const{
@@ -240,6 +244,13 @@ void LinCapR::calc_inside(){
 		for(int n = TURN; n <= (j + 1); n++){
 			const int i = j - n + 1;
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
+				if(debug_hairpin_build_log){
+					cerr << "debug_hairpin_build raw_outer=(" << (i - 1) << "," << (j + 1)
+					     << ") raw_loop_len=" << (j - i)
+					     << " inner=(" << i << "," << j << ")"
+					     << " bases=" << seq[i - 1] << "," << seq[j + 1]
+					     << endl;
+				}
 				lcr::dp::update_sum(alpha_SE, i, j, -_energy->energy_hairpin(i - 1, j + 1) / _energy->kT());
 			}
 		}
@@ -349,8 +360,13 @@ void LinCapR::calc_profile(){
 
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [j, score] : beta_SE[k]){
-			// H
-			lcr::dp::add_range(prob_H, j, k, exp(score - _energy->energy_hairpin(j - 1, k + 1) / _energy->kT() - logZ));
+			// H: unpaired range is derived from raw closing pair (outer_i, outer_j).
+			const int outer_i = j - 1;
+			const int outer_j = k + 1;
+			const int unp_l = outer_i + 1;
+			const int unp_r = outer_j - 1;
+			lcr::dp::add_range(prob_H, unp_l, unp_r,
+			                   exp(score - _energy->energy_hairpin(outer_i, outer_j) / _energy->kT() - logZ));
 
 			// B, I
 			for(int p = j; p <= min(j + MAXLOOP, k - 1); p++){
@@ -556,6 +572,7 @@ void LinCapR::debug_hairpin(int idx, int topn) const {
 		double prob;
 	};
 	vector<Item> items;
+	double sum_contrib = 0.0;
 	const double logZ = alpha_O[seq_n - 1];
 
 	for(int k = 0; k < seq_n; k++){
@@ -566,6 +583,7 @@ void LinCapR::debug_hairpin(int idx, int topn) const {
 			if(outer_i < 0 || outer_j >= seq_n) continue;
 			const double new_score = exp(score - _energy->energy_hairpin(outer_i, outer_j) / _energy->kT() - logZ);
 			items.push_back({j, k, new_score});
+			sum_contrib += new_score;
 		}
 	}
 
@@ -579,20 +597,28 @@ void LinCapR::debug_hairpin(int idx, int topn) const {
 	};
 
 	cerr << "debug_hairpin i=" << idx << " candidates=" << items.size() << endl;
+	cerr << "  sum_contrib=" << sum_contrib
+	     << " prob_H[i]=" << prob_H[idx]
+	     << " normalize_profiles=" << (normalize_profiles ? 1 : 0) << endl;
 	const int limit = min(topn, static_cast<int>(items.size()));
 	for(int t = 0; t < limit; t++){
 		const auto& it = items[t];
 		const int outer_i = it.j - 1;
 		const int outer_j = it.k + 1;
+		const int unp_l = outer_i + 1;
+		const int unp_r = outer_j - 1;
 		const bool outer_pairable = can_pair(outer_i, outer_j);
 		const bool outer_in_alpha = lcr::dp::contains(alpha_S, outer_i, outer_j);
 		const double loop_energy = _energy->energy_hairpin(outer_i, outer_j);
+		const int raw_loop_len = outer_j - outer_i - 1;
 		cerr << "  (j,k)=(" << it.j << "," << it.k << ")"
 		     << " prob=" << it.prob
-		     << " outer=(" << outer_i << "," << outer_j << ")"
+		     << " raw_outer=(" << outer_i << "," << outer_j << ")"
+		     << " raw_unpaired=(" << unp_l << "," << unp_r << ")"
 		     << " bases=" << base_at(outer_i) << "," << base_at(outer_j)
 		     << " outer_can_pair=" << outer_pairable
 		     << " outer_in_alpha=" << outer_in_alpha
+		     << " raw_loop_len=" << raw_loop_len
 		     << " hairpinE=" << loop_energy
 		     << endl;
 	}
@@ -767,6 +793,10 @@ void LinCapR::debug_internal(int idx, int topn) const {
 		const auto& it = items[t];
 		const int outer_i = it.j - 1;
 		const int outer_j = it.k + 1;
+		const int r_outer_i = outer_i - 1;
+		const int r_outer_j = outer_j;
+		const int r_inner_i = it.p - 1;
+		const int r_inner_j = it.q;
 		const int left_len = it.p - it.j;
 		const int right_len = it.k - it.q;
 		const bool outer_pairable = (0 <= outer_i && outer_j < seq_n) ? can_pair(outer_i, outer_j) : false;
@@ -779,9 +809,13 @@ void LinCapR::debug_internal(int idx, int topn) const {
 		     << " prob=" << it.prob
 		     << " outer=(" << outer_i << "," << outer_j << ")"
 		     << " inner=(" << it.p << "," << it.q << ")"
+		     << " raccess_outer=(" << r_outer_i << "," << r_outer_j << ")"
+		     << " raccess_inner=(" << r_inner_i << "," << r_inner_j << ")"
 		     << " len=(" << left_len << "," << right_len << ")"
 		     << " bases outer=" << base_at(outer_i) << "," << base_at(outer_j)
 		     << " inner=" << base_at(it.p) << "," << base_at(it.q)
+		     << " raccess_bases outer=" << base_at(r_outer_i) << "," << base_at(r_outer_j)
+		     << " inner=" << base_at(r_inner_i) << "," << base_at(r_inner_j)
 		     << " outer_can_pair=" << outer_pairable
 		     << " outer_in_alpha=" << outer_in_alpha
 		     << " loopE=" << loop_energy
