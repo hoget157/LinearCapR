@@ -459,13 +459,19 @@ int main(int argc, char **argv){
 		ofs.close();
 
 		if(output_energy) printf("G_ensemble: %.2lf\n", lcr.get_energy_ensemble());
-		if(output_logz) printf("logZ: %.10f\n", lcr.get_logZ());
+		if(output_logz){
+			const double logz = lcr.get_logZ();
+			const double logz_adj = lcr.get_logZ_outer_adjusted();
+			printf("logZ: %.10f\n", logz);
+			printf("logZ_outer_adjusted: %.10f\n", logz_adj);
+		}
 		if(output_logz_raccess){
 			const int max_span = (compare_max_span > 0 ? compare_max_span : static_cast<int>(seq[i].size() + 1));
 			const double logz_raccess = lcr::compute_raccess_logz(seq[i], max_span);
 			printf("raccess_logZ: %.10f\n", logz_raccess);
 			if(output_logz){
 				printf("logZ_diff: %.10g\n", lcr.get_logZ() - logz_raccess);
+				printf("logZ_outer_adjusted_diff: %.10g\n", lcr.get_logZ_outer_adjusted() - logz_raccess);
 			}
 		}
 		if(compare_unpaired){

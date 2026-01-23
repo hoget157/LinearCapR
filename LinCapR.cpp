@@ -103,6 +103,14 @@ Float LinCapR::get_logZ() const{
 	return alpha_O[seq_n - 1];
 }
 
+Float LinCapR::get_logZ_outer_adjusted() const{
+	double sum = 0.0;
+	for(int i = 0; i < seq_n; i++){
+		sum += _energy->energy_external_unpaired(i, i) / _energy->kT();
+	}
+	return get_logZ() + sum;
+}
+
 const vector<Float>& LinCapR::get_prob_stem() const{
 	return prob_S;
 }

@@ -20,6 +20,7 @@ public:
 	void clear();
 	Float get_energy_ensemble() const;
 	Float get_logZ() const;
+	Float get_logZ_outer_adjusted() const;
 	const vector<Float>& get_prob_stem() const;
 	void debug_stem_pairs(int idx, int topn) const;
 	void debug_pair(int i, int j) const;
