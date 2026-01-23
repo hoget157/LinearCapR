@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <cctype>
 
 LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine, bool normalize_profiles, Float normalize_warn_eps)
 	: params(energy::get_params(model)),
@@ -930,6 +931,50 @@ void LinCapR::debug_multi_prob(int idx, int topn) const {
 		     << " prob=" << it.prob
 		     << " range=(" << (it.q + 1) << "," << it.k << ")"
 		     << endl;
+	}
+}
+
+void LinCapR::debug_dp_dump(const string& state, int i0, int j0, int i1, int j1) const {
+	if(seq_n <= 0) return;
+	string key = state;
+	for(char& c : key) c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+	const Table* alpha = nullptr;
+	const Table* beta = nullptr;
+	const char* label = nullptr;
+	if(key == "s" || key == "stem"){
+		alpha = &alpha_S;
+		beta = &beta_S;
+		label = "S";
+	}else if(key == "se" || key == "stem_end" || key == "stemend"){
+		alpha = &alpha_SE;
+		beta = &beta_SE;
+		label = "SE";
+	}else{
+		cerr << "debug_dp_dump: unknown state: " << state << endl;
+		return;
+	}
+	int lo_i = std::min(i0, i1);
+	int hi_i = std::max(i0, i1);
+	int lo_j = std::min(j0, j1);
+	int hi_j = std::max(j0, j1);
+	lo_i = std::max(0, lo_i);
+	hi_i = std::min(seq_n - 1, hi_i);
+	lo_j = std::max(0, lo_j);
+	hi_j = std::min(seq_n - 1, hi_j);
+	for(int i = lo_i; i <= hi_i; i++){
+		for(int j = std::max(i, lo_j); j <= hi_j; j++){
+			const Table& a_tbl = *alpha;
+			const Table& b_tbl = *beta;
+			const auto it_a = a_tbl[j].find(i);
+			const auto it_b = b_tbl[j].find(i);
+			const double a = (it_a == a_tbl[j].end() ? -INF : it_a->second);
+			const double b = (it_b == b_tbl[j].end() ? -INF : it_b->second);
+			cerr << "debug_dp_dump state=" << label
+			     << " raw_pair=(" << i << "," << j << ")"
+			     << " alpha=" << a
+			     << " beta=" << b
+			     << endl;
+		}
 	}
 }
 

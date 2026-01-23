@@ -31,6 +31,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-internal i Print top internal-loop contributions covering i" << endl;
 		cout << "  --debug-multi i,j  Print multiloop unpaired energy for range (0-origin)" << endl;
 		cout << "  --debug-multi-prob i  Print multiloop probability contributions at i" << endl;
+		cout << "  --debug-dp state,i0,j0,i1,j1  Dump alpha/beta tables for state (S|SE) in raw coord range" << endl;
 		cout << "  --no-fast-logsumexp Disable polynomial logsumexp approximation" << endl;
 		cout << "  --no-normalize     Disable per-position profile normalization" << endl;
 		cout << "  --norm-warn eps    Warn when sum of probs differs from 1 by eps (default: 1e-6)" << endl;
@@ -74,6 +75,12 @@ int main(int argc, char **argv){
 	bool debug_multi_prob = false;
 	int debug_multi_prob_i = -1;
 	int debug_multi_prob_top = 10;
+	bool debug_dp_dump = false;
+	string debug_dp_state;
+	int debug_dp_i0 = -1;
+	int debug_dp_j0 = -1;
+	int debug_dp_i1 = -1;
+	int debug_dp_j1 = -1;
 	bool normalize_profiles = true;
 	bool disable_fast_logsumexp = false;
 	double normalize_warn_eps = 1e-6;
@@ -204,6 +211,33 @@ int main(int argc, char **argv){
 				return 1;
 			}
 			debug_multi_prob_top = atoi(argv[++i]);
+		}else if(strcmp(argv[i], "--debug-dp") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-dp requires state,i0,j0,i1,j1" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			vector<string> parts;
+			string cur;
+			for(char c : arg){
+				if(c == ',' || c == ';' || c == ':'){
+					parts.push_back(cur);
+					cur.clear();
+				}else{
+					cur.push_back(c);
+				}
+			}
+			if(!cur.empty()) parts.push_back(cur);
+			if(parts.size() != 5){
+				cout << "Error: --debug-dp expects state,i0,j0,i1,j1" << endl;
+				return 1;
+			}
+			debug_dp_state = parts[0];
+			debug_dp_i0 = stoi(parts[1]);
+			debug_dp_j0 = stoi(parts[2]);
+			debug_dp_i1 = stoi(parts[3]);
+			debug_dp_j1 = stoi(parts[4]);
+			debug_dp_dump = true;
 		}else if(strcmp(argv[i], "--no-fast-logsumexp") == 0){
 			disable_fast_logsumexp = true;
 		}else if(strcmp(argv[i], "--no-normalize") == 0){
@@ -326,6 +360,29 @@ int main(int argc, char **argv){
 			debug_multi_prob = true;
 		}else if(strncmp(argv[i], "--debug-multi-prob-top=", 23) == 0){
 			debug_multi_prob_top = atoi(argv[i] + 23);
+		}else if(strncmp(argv[i], "--debug-dp=", 11) == 0){
+			const string arg = argv[i] + 11;
+			vector<string> parts;
+			string cur;
+			for(char c : arg){
+				if(c == ',' || c == ';' || c == ':'){
+					parts.push_back(cur);
+					cur.clear();
+				}else{
+					cur.push_back(c);
+				}
+			}
+			if(!cur.empty()) parts.push_back(cur);
+			if(parts.size() != 5){
+				cout << "Error: --debug-dp expects state,i0,j0,i1,j1" << endl;
+				return 1;
+			}
+			debug_dp_state = parts[0];
+			debug_dp_i0 = stoi(parts[1]);
+			debug_dp_j0 = stoi(parts[2]);
+			debug_dp_i1 = stoi(parts[3]);
+			debug_dp_j1 = stoi(parts[4]);
+			debug_dp_dump = true;
 		}else if(strncmp(argv[i], "--norm-warn=", 12) == 0){
 			normalize_warn_eps = atof(argv[i] + 12);
 		}else{
@@ -438,6 +495,9 @@ int main(int argc, char **argv){
 		}
 		if(debug_multi_prob){
 			lcr.debug_multi_prob(debug_multi_prob_i, debug_multi_prob_top);
+		}
+		if(debug_dp_dump){
+			lcr.debug_dp_dump(debug_dp_state, debug_dp_i0, debug_dp_j0, debug_dp_i1, debug_dp_j1);
 		}
 
 		lcr.clear();

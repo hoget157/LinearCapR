@@ -29,6 +29,7 @@ public:
 	void debug_internal(int idx, int topn) const;
 	void debug_multi_unpaired(int i, int j) const;
 	void debug_multi_prob(int idx, int topn) const;
+	void debug_dp_dump(const string& state, int i0, int j0, int i1, int j1) const;
 	void set_debug_hairpin_build(bool enable);
 private:
 	const energy::Params &params;
