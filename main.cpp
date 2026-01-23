@@ -31,6 +31,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-internal i Print top internal-loop contributions covering i" << endl;
 		cout << "  --debug-multi i,j  Print multiloop unpaired energy for range (0-origin)" << endl;
 		cout << "  --debug-multi-prob i  Print multiloop probability contributions at i" << endl;
+		cout << "  --debug-se i,j     Print alpha_SE contributions for pair (i,j) (0-origin)" << endl;
 		cout << "  --debug-dp state,i0,j0,i1,j1  Dump alpha/beta tables for state (S|SE) in raw coord range" << endl;
 		cout << "  --debug-outer-dp i0,i1  Dump alpha_O/beta_O for outer DP indices" << endl;
 		cout << "  --no-fast-logsumexp Disable polynomial logsumexp approximation" << endl;
@@ -76,6 +77,9 @@ int main(int argc, char **argv){
 	bool debug_multi_prob = false;
 	int debug_multi_prob_i = -1;
 	int debug_multi_prob_top = 10;
+	bool debug_se = false;
+	int debug_se_i = -1;
+	int debug_se_j = -1;
 	bool debug_dp_dump = false;
 	string debug_dp_state;
 	int debug_dp_i0 = -1;
@@ -209,6 +213,20 @@ int main(int argc, char **argv){
 			}
 			debug_multi_prob_i = atoi(argv[++i]);
 			debug_multi_prob = true;
+		}else if(strcmp(argv[i], "--debug-se") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --debug-se requires i,j" << endl;
+				return 1;
+			}
+			const string arg = argv[++i];
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-se expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_se_i = stoi(arg.substr(0, comma));
+			debug_se_j = stoi(arg.substr(comma + 1));
+			debug_se = true;
 		}else if(strcmp(argv[i], "--debug-multi-prob-top") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --debug-multi-prob-top requires n" << endl;
@@ -376,6 +394,16 @@ int main(int argc, char **argv){
 		}else if(strncmp(argv[i], "--debug-multi-prob=", 19) == 0){
 			debug_multi_prob_i = atoi(argv[i] + 19);
 			debug_multi_prob = true;
+		}else if(strncmp(argv[i], "--debug-se=", 11) == 0){
+			const string arg = argv[i] + 11;
+			const size_t comma = arg.find(',');
+			if(comma == string::npos){
+				cout << "Error: --debug-se expects i,j (0-origin)" << endl;
+				return 1;
+			}
+			debug_se_i = stoi(arg.substr(0, comma));
+			debug_se_j = stoi(arg.substr(comma + 1));
+			debug_se = true;
 		}else if(strncmp(argv[i], "--debug-multi-prob-top=", 23) == 0){
 			debug_multi_prob_top = atoi(argv[i] + 23);
 		}else if(strncmp(argv[i], "--debug-dp=", 11) == 0){
@@ -439,6 +467,9 @@ int main(int argc, char **argv){
 	// run LinCapR
 	const int s = seq.size();
 	LinCapR lcr(beam_size, energy_model, engine, normalize_profiles, normalize_warn_eps);
+	if(debug_se){
+		lcr.set_debug_se(debug_se_i, debug_se_j);
+	}
 	if(disable_fast_logsumexp){
 		set_logsumexp_legacy_mode();
 	}

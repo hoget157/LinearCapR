@@ -33,12 +33,18 @@ public:
 	void debug_dp_dump(const string& state, int i0, int j0, int i1, int j1) const;
 	void debug_outer_dp_dump(int i0, int i1) const;
 	void set_debug_hairpin_build(bool enable);
+	void set_debug_se(int i, int j, int max_hits = 200);
 private:
 	const energy::Params &params;
 	const int beam_size;
 	const bool normalize_profiles;
 	const Float normalize_warn_eps;
 	bool debug_hairpin_build_log = false;
+	bool debug_se_log = false;
+	int debug_se_i = -1;
+	int debug_se_j = -1;
+	int debug_se_hits = 0;
+	int debug_se_max_hits = 200;
 	
 	string seq;
 

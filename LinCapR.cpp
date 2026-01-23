@@ -33,6 +33,14 @@ void LinCapR::set_debug_hairpin_build(bool enable) {
 	debug_hairpin_build_log = enable;
 }
 
+void LinCapR::set_debug_se(int i, int j, int max_hits) {
+	debug_se_log = true;
+	debug_se_i = i;
+	debug_se_j = j;
+	debug_se_hits = 0;
+	debug_se_max_hits = max_hits;
+}
+
 
 // prune top-k states
 Float LinCapR::prune(Map<int, Float> &states) const{
@@ -184,6 +192,26 @@ void LinCapR::initialize(const string &seq){
 // calc inside variables
 void LinCapR::calc_inside(){
 	alpha_O[0] = - _energy->energy_external_unpaired(0, 0) / _energy->kT();
+	const auto base_at = [&](int idx) -> char {
+		if(idx < 0 || idx >= seq_n) return 'N';
+		return seq[idx];
+	};
+	const auto log_se = [&](const char* label, int i, int j, int outer_i, int outer_j,
+	                        int inner_i, int inner_j, double base, double dsc, double logw) {
+		if(!debug_se_log) return;
+		if(debug_se_hits >= debug_se_max_hits) return;
+		if(i != debug_se_i || j != debug_se_j) return;
+		cerr << "debug_se: label=" << label
+		     << " target=(" << i << "," << j << ")"
+		     << " outer=(" << outer_i << "," << outer_j << ")"
+		     << " inner=(" << inner_i << "," << inner_j << ")"
+		     << " bases=" << base_at(outer_i) << "," << base_at(outer_j)
+		     << " base=" << base
+		     << " dsc=" << dsc
+		     << " logw=" << logw
+		     << endl;
+		debug_se_hits++;
+	};
 
 	for(int j = 0; j < seq_n; j++){
 		// S
@@ -203,7 +231,10 @@ void LinCapR::calc_inside(){
 			for(int p = i; i - p <= MAXLOOP && p >= 1; p--){
 				for(int q = next_pair[seq_int[p - 1]][j + 1]; q < seq_n && (q - j - 1) + (i - p) <= MAXLOOP; q = next_pair[seq_int[p - 1]][q + 1]){
 					if((p == i && q == j + 1)) continue;
-					lcr::dp::update_sum(alpha_SE, p, q - 1, score - _energy->energy_loop(p - 1, q, i, j) / _energy->kT());
+					const double dsc = _energy->energy_loop(p - 1, q, i, j) / _energy->kT();
+					const double logw = score - dsc;
+					log_se("SE_from_S_loop", p, q - 1, p - 1, q, i, j, score, dsc, logw);
+					lcr::dp::update_sum(alpha_SE, p, q - 1, logw);
 				}
 			}
 
@@ -245,7 +276,10 @@ void LinCapR::calc_inside(){
 		for(const auto [i, score] : alpha_M[j]){
 			// SE -> M
 			if(i - 1 >= 0 && j + 1 < seq_n && can_pair(i - 1, j + 1)){
-				lcr::dp::update_sum(alpha_SE, i, j, score - _energy->energy_multi_closing(i - 1, j + 1) / _energy->kT());
+				const double dsc = _energy->energy_multi_closing(i - 1, j + 1) / _energy->kT();
+				const double logw = score - dsc;
+				log_se("SE_from_M_close", i, j, i - 1, j + 1, i, j, score, dsc, logw);
+				lcr::dp::update_sum(alpha_SE, i, j, logw);
 			}
 		}
 
@@ -260,7 +294,10 @@ void LinCapR::calc_inside(){
 					     << " bases=" << seq[i - 1] << "," << seq[j + 1]
 					     << endl;
 				}
-				lcr::dp::update_sum(alpha_SE, i, j, -_energy->energy_hairpin(i - 1, j + 1) / _energy->kT());
+				const double dsc = _energy->energy_hairpin(i - 1, j + 1) / _energy->kT();
+				const double logw = -dsc;
+				log_se("SE_from_hairpin", i, j, i - 1, j + 1, i, j, 0.0, dsc, logw);
+				lcr::dp::update_sum(alpha_SE, i, j, logw);
 			}
 		}
 
