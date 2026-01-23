@@ -978,5 +978,25 @@ void LinCapR::debug_dp_dump(const string& state, int i0, int j0, int i1, int j1)
 	}
 }
 
+void LinCapR::debug_outer_dp_dump(int i0, int i1) const {
+	if(seq_n <= 0) return;
+	int lo = std::min(i0, i1);
+	int hi = std::max(i0, i1);
+	lo = std::max(0, lo);
+	hi = std::min(seq_n - 1, hi);
+	const double logZ = alpha_O[seq_n - 1];
+	for(int i = lo; i <= hi; i++){
+		const double alpha = alpha_O[i];
+		const double beta = beta_O[i];
+		const double beta_norm = beta - logZ;
+		cerr << "debug_outer_dp idx=" << i
+		     << " alpha_O=" << alpha
+		     << " beta_O=" << beta
+		     << " beta_norm=" << beta_norm
+		     << " logZ=" << logZ
+		     << endl;
+	}
+}
+
 
 // calc energy of hairpin loop [i, j]
