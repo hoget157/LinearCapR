@@ -539,10 +539,17 @@ void LinCapR::debug_pair(int i, int j) const {
 	} else {
 		cerr << "  beta_SE=" << it_se_b->second << endl;
 	}
+	if(it_b != beta_S[j].end()){
+		cerr << "  beta_S_norm=" << (it_b->second - logZ) << endl;
+	}
+	if(it_se_b != beta_SE[j].end()){
+		cerr << "  beta_SE_norm=" << (it_se_b->second - logZ) << endl;
+	}
 	if(it_a != alpha_S[j].end() && it_b != beta_S[j].end()){
 		const double prob = exp(it_a->second + it_b->second - logZ);
 		cerr << "  pair_prob=" << prob << endl;
 	}
+	cerr << "  logZ=" << logZ << endl;
 
 	if(i - 1 >= 0 && j + 1 < seq_n){
 		const double loop_energy = _energy->energy_loop(i - 1, j + 1, i, j);
