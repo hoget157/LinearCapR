@@ -32,6 +32,7 @@ int main(int argc, char **argv){
 		cout << "  --debug-multi i,j  Print multiloop unpaired energy for range (0-origin)" << endl;
 		cout << "  --debug-multi-prob i  Print multiloop probability contributions at i" << endl;
 		cout << "  --debug-se i,j     Print alpha_SE contributions for pair (i,j) (0-origin)" << endl;
+		cout << "  --c-multi <int>   Max multiloop unpaired segment length (default: 30)" << endl;
 		cout << "  --debug-dp state,i0,j0,i1,j1  Dump alpha/beta tables for state (S|SE) in raw coord range" << endl;
 		cout << "  --debug-outer-dp i0,i1  Dump alpha_O/beta_O for outer DP indices" << endl;
 		cout << "  --no-fast-logsumexp Disable polynomial logsumexp approximation" << endl;
@@ -89,6 +90,7 @@ int main(int argc, char **argv){
 	bool debug_outer_dp = false;
 	int debug_outer_dp_i0 = -1;
 	int debug_outer_dp_i1 = -1;
+	int c_multi = 30;
 	bool normalize_profiles = true;
 	bool disable_fast_logsumexp = false;
 	double normalize_warn_eps = 1e-6;
@@ -233,6 +235,12 @@ int main(int argc, char **argv){
 				return 1;
 			}
 			debug_multi_prob_top = atoi(argv[++i]);
+		}else if(strcmp(argv[i], "--c-multi") == 0){
+			if(i + 1 >= argc){
+				cout << "Error: --c-multi requires an integer argument" << endl;
+				return 1;
+			}
+			c_multi = max(0, atoi(argv[++i]));
 		}else if(strcmp(argv[i], "--debug-dp") == 0){
 			if(i + 1 >= argc){
 				cout << "Error: --debug-dp requires state,i0,j0,i1,j1" << endl;
@@ -406,6 +414,8 @@ int main(int argc, char **argv){
 			debug_se = true;
 		}else if(strncmp(argv[i], "--debug-multi-prob-top=", 23) == 0){
 			debug_multi_prob_top = atoi(argv[i] + 23);
+		}else if(strncmp(argv[i], "--c-multi=", 10) == 0){
+			c_multi = max(0, atoi(argv[i] + 10));
 		}else if(strncmp(argv[i], "--debug-dp=", 11) == 0){
 			const string arg = argv[i] + 11;
 			vector<string> parts;
@@ -466,7 +476,7 @@ int main(int argc, char **argv){
 
 	// run LinCapR
 	const int s = seq.size();
-	LinCapR lcr(beam_size, energy_model, engine, normalize_profiles, normalize_warn_eps);
+	LinCapR lcr(beam_size, energy_model, engine, normalize_profiles, normalize_warn_eps, c_multi);
 	if(debug_se){
 		lcr.set_debug_se(debug_se_i, debug_se_j);
 	}

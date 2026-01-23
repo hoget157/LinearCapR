@@ -11,9 +11,10 @@
 #include <cmath>
 #include <cctype>
 
-LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine, bool normalize_profiles, Float normalize_warn_eps)
+LinCapR::LinCapR(int beam_size, energy::Model model, EnergyEngine engine, bool normalize_profiles, Float normalize_warn_eps, int c_multi)
 	: params(energy::get_params(model)),
 	  beam_size(beam_size),
+	  c_multi(c_multi),
 	  normalize_profiles(normalize_profiles),
 	  normalize_warn_eps(normalize_warn_eps) {
 	switch (engine) {
@@ -223,7 +224,7 @@ void LinCapR::calc_inside(){
 			}
 			
 			// M2 -> S
-			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
+			for(int n = 0; n <= c_multi && j + n < seq_n; n++){
 				lcr::dp::update_sum(alpha_M2, i, j + n, score - (_energy->energy_multi_bif(i, j) + _energy->energy_multi_unpaired(j + 1, j + n)) / _energy->kT());
 			}
 
@@ -263,7 +264,7 @@ void LinCapR::calc_inside(){
 			lcr::dp::update_sum(alpha_M1, i, j, score);
 
 			// M -> MB
-			for(int n = 0; n <= MULTI_MAX_UNPAIRED && i - n >= 0; n++){
+			for(int n = 0; n <= c_multi && i - n >= 0; n++){
 				lcr::dp::update_sum(alpha_M, i - n, j, score);
 			}
 		}
@@ -355,7 +356,7 @@ void LinCapR::calc_outside(){
 			lcr::dp::update_sum(beta_MB, i, j, lcr::dp::get_value(beta_M1, i, j));
 
 			// M -> MB
-			for(int n = 0; n <= MULTI_MAX_UNPAIRED && i - n >= 0; n++){
+			for(int n = 0; n <= c_multi && i - n >= 0; n++){
 				lcr::dp::update_sum(beta_MB, i, j, lcr::dp::get_value(beta_M, i - n, j));
 			}
 		}
@@ -392,7 +393,7 @@ void LinCapR::calc_outside(){
 			}
 			
 			// M2 -> S
-			for(int n = 0; n <= MULTI_MAX_UNPAIRED && j + n < seq_n; n++){
+			for(int n = 0; n <= c_multi && j + n < seq_n; n++){
 				lcr::dp::update_sum(beta_S, i, j, lcr::dp::get_value(beta_M2, i, j + n) - (_energy->energy_multi_bif(i, j) + _energy->energy_multi_unpaired(j + 1, j + n)) / _energy->kT());
 			}
 		}
@@ -434,7 +435,7 @@ void LinCapR::calc_profile(){
 	// M
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [p, score] : alpha_MB[k]){
-			for(int j = p - 1; j >= max(0, p - MAXLOOP); j--){
+			for(int j = p - 1; j >= max(0, p - c_multi); j--){
 				if(!lcr::dp::contains(beta_M, j, k)) continue;
 				const Float new_score = exp(score + beta_M[k][j] - _energy->energy_multi_unpaired(j, p - 1) / _energy->kT() - logZ);
 				lcr::dp::add_range(prob_M, j, p - 1, new_score);
@@ -443,7 +444,7 @@ void LinCapR::calc_profile(){
 	}
 	for(int q = 0; q < seq_n; q++){
 		for(const auto [j, score] : alpha_S[q]){
-			for(int k = q + 1; k <= min(seq_n - 1, q + MAXLOOP); k++){
+			for(int k = q + 1; k <= min(seq_n - 1, q + c_multi); k++){
 				if(!lcr::dp::contains(beta_M2, j, k)) continue;
 				const Float new_score = exp(score + beta_M2[k][j] - (_energy->energy_multi_bif(j, q) + _energy->energy_multi_unpaired(q + 1, k)) / _energy->kT() - logZ);
 				lcr::dp::add_range(prob_M, q + 1, k, new_score);
@@ -925,7 +926,7 @@ void LinCapR::debug_multi_prob(int idx, int topn) const {
 	// Contribution from alpha_MB / beta_M (calc_profile M part 1)
 	for(int k = 0; k < seq_n; k++){
 		for(const auto [p, score] : alpha_MB[k]){
-			const int j_min = max(0, p - MAXLOOP);
+			const int j_min = max(0, p - c_multi);
 			for(int j = p - 1; j >= j_min; j--){
 				if(!lcr::dp::contains(beta_M, j, k)) continue;
 				if(idx < j || idx > (p - 1)) continue;
@@ -942,7 +943,7 @@ void LinCapR::debug_multi_prob(int idx, int topn) const {
 	// Contribution from alpha_S / beta_M2 (calc_profile M part 2)
 	for(int q = 0; q < seq_n; q++){
 		for(const auto [j, score] : alpha_S[q]){
-			const int k_max = min(seq_n - 1, q + MAXLOOP);
+			const int k_max = min(seq_n - 1, q + c_multi);
 			for(int k = q + 1; k <= k_max; k++){
 				if(!lcr::dp::contains(beta_M2, j, k)) continue;
 				if(idx < (q + 1) || idx > k) continue;

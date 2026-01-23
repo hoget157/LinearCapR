@@ -25,7 +25,7 @@ ENERGY_PARAM_NAMESPACE_BEGIN
 /** The maximum loop length */
 #define MAXLOOP 30
 
-#define MULTI_MAX_UNPAIRED 30
+#define C_MULTI_DEFAULT 30
 
 const double temperature = 37;
 const double kT = (temperature + K0) * GASCONST / 10.;

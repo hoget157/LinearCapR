@@ -14,7 +14,8 @@ public:
 	       energy::Model model = energy::Model::Turner2004,
 	       EnergyEngine engine = EnergyEngine::LinearCapR,
 	       bool normalize_profiles = true,
-	       Float normalize_warn_eps = 1e-6);
+	       Float normalize_warn_eps = 1e-6,
+	       int c_multi = 30);
 	void run(const string&);
 	void output(ofstream&, const string&) const;
 	void clear();
@@ -37,6 +38,7 @@ public:
 private:
 	const energy::Params &params;
 	const int beam_size;
+	const int c_multi;
 	const bool normalize_profiles;
 	const Float normalize_warn_eps;
 	bool debug_hairpin_build_log = false;
