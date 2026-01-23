@@ -70,7 +70,7 @@ public:
 	}
 
 private:
-	static constexpr double debug_kHairpinScale = 10.0;
+	static constexpr double debug_kHairpinScale = 2.0;
 	static constexpr double kLengthFactor = -0.541728723;
 	typedef Raccess::ScoreModelEnergy SM;
 	SM _sm;
