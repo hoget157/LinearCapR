@@ -609,17 +609,19 @@ void LinCapR::debug_external(int idx, int topn) const {
 	const int right = idx + 1;
 	const double alpha_left = (left >= 0 ? alpha_O[left] : 0.0);
 	const double beta_right = (right < seq_n ? beta_O[right] : 0.0);
+	const double unpaired_e = _energy->energy_external_unpaired(idx, idx) / _energy->kT();
 	double e_log = 0.0;
 	if(idx == 0){
-		e_log = beta_O[1] - logZ;
+		e_log = beta_O[1] - unpaired_e - logZ;
 	}else if(idx == seq_n - 1){
-		e_log = alpha_O[seq_n - 2] - logZ;
+		e_log = alpha_O[seq_n - 2] - unpaired_e - logZ;
 	}else{
-		e_log = alpha_left + beta_right - logZ;
+		e_log = alpha_left + beta_right - unpaired_e - logZ;
 	}
 	cerr << "debug_external i=" << idx
 	     << " alpha_O[i-1]=" << alpha_left
 	     << " beta_O[i+1]=" << beta_right
+	     << " unpairedE=" << unpaired_e
 	     << " logZ=" << logZ
 	     << " E=" << exp(e_log)
 	     << endl;
@@ -634,7 +636,11 @@ void LinCapR::debug_external(int idx, int topn) const {
 	if(left >= 0){
 		vector<Item> items;
 		double total = -INF;
-		if(left - 1 >= 0){
+		if(left == 0){
+			const double logw = -_energy->energy_external_unpaired(0, 0) / _energy->kT();
+			items.push_back({logw, 0, 0, "O_init"});
+			total = lcr::dp::logsumexp(total, logw);
+		}else if(left - 1 >= 0){
 			const double logw = alpha_O[left - 1]
 				- _energy->energy_external_unpaired(left, left) / _energy->kT();
 			items.push_back({logw, left - 1, left, "O->O"});
@@ -668,7 +674,11 @@ void LinCapR::debug_external(int idx, int topn) const {
 	if(right < seq_n){
 		vector<Item> items;
 		double total = -INF;
-		if(right + 1 < seq_n){
+		if(right == seq_n - 1){
+			const double logw = -_energy->energy_external_unpaired(seq_n - 1, seq_n - 1) / _energy->kT();
+			items.push_back({logw, seq_n - 1, seq_n - 1, "O_init"});
+			total = lcr::dp::logsumexp(total, logw);
+		}else if(right + 1 < seq_n){
 			const double logw = beta_O[right + 1]
 				- _energy->energy_external_unpaired(right + 1, right + 1) / _energy->kT();
 			items.push_back({logw, right + 1, right, "O->O"});
