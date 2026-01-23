@@ -526,6 +526,19 @@ void LinCapR::debug_pair(int i, int j) const {
 	} else {
 		cerr << "  beta_S=" << it_b->second << endl;
 	}
+
+	auto it_se_a = alpha_SE[j].find(i);
+	auto it_se_b = beta_SE[j].find(i);
+	if(it_se_a == alpha_SE[j].end()){
+		cerr << "  alpha_SE missing" << endl;
+	} else {
+		cerr << "  alpha_SE=" << it_se_a->second << endl;
+	}
+	if(it_se_b == beta_SE[j].end()){
+		cerr << "  beta_SE missing" << endl;
+	} else {
+		cerr << "  beta_SE=" << it_se_b->second << endl;
+	}
 	if(it_a != alpha_S[j].end() && it_b != beta_S[j].end()){
 		const double prob = exp(it_a->second + it_b->second - logZ);
 		cerr << "  pair_prob=" << prob << endl;

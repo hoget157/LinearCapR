@@ -39,11 +39,22 @@ public:
 		return energy * debug_kHairpinScale;
 	}
 	Float energy_loop(int i, int j, int p, int q) const override {
-		const int a = i + 1;
-		const int b = j + 1;
-		const int c = p + 1;
-		const int d = q + 1;
-		return _api.score_to_energy(_api.log_boltz_loop_closed(a, b, c, d));
+		// const int a = i + 1;
+		// const int b = j + 1;
+		// const int c = p + 1;
+		// const int d = q + 1;
+		// return _api.score_to_energy(_api.log_boltz_loop_closed(a, b, c, d));
+		// Use DP-coordinate mapping to align with Raccess interior loop indexing.
+		if (p == i + 1 && q == j - 1) {
+			const int a = i + 1;
+			const int b = j + 1;
+			return _api.score_to_energy(_api.log_boltz_stack_closed(a, b));
+		}
+		const int dp_i = i + 1;
+		const int dp_j = j;
+		const int dp_p = p;
+		const int dp_q = q + 1;
+		return _api.score_to_energy(_api.log_boltz_interior(dp_i, dp_j, dp_p, dp_q));
 	}
 	Float energy_external(int i, int j) const override {
 		const int a = i + 1;
