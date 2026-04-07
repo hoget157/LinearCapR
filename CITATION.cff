@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "LinearCapR"
+version: "v1.0.4"
+url: "https://github.com/hoget157/LinearCapR"
+repository-code: "https://github.com/hoget157/LinearCapR"
+license: "MIT"
+authors:
+  - family-names: "Hosokawa"
+    given-names: "Hiroaki"
+  - family-names: "Otagaki"
+    given-names: "Takumi"
