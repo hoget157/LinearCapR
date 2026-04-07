@@ -80,6 +80,11 @@ match the real output format.
 
 ## Representative Example
 
+The figure below shows the bundled `test.fa` example plotted directly from a
+standard LinearCapR output profile, without any reference annotation track:
+
+![LinearCapR profile on bundled test.fa](docs/test_profile_demo.png)
+
 As a compact qualitative example, the figure below shows a LinearCapR profile
 on yeast phenylalanine tRNA (PDB: 1EHZ), together with reference structure
 labels derived from the same sequence. This is the same type of

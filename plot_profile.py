@@ -253,7 +253,8 @@ def run_lincapr(
     energy_model: str,
     lincapr_bin: Path,
 ) -> None:
-    cmd = [str(lincapr_bin), str(fasta), str(output_profile), str(beam_size), "--energy", energy_model]
+    exe = lincapr_bin if lincapr_bin.is_absolute() else (Path.cwd() / lincapr_bin)
+    cmd = [str(exe), str(fasta), str(output_profile), str(beam_size), "--energy", energy_model]
     subprocess.run(cmd, check=True)
 
 
