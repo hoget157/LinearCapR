@@ -86,7 +86,7 @@ standard LinearCapR output profile, without any reference annotation track:
 ![LinearCapR profile on bundled test.fa](docs/test_profile_demo.png)
 
 As a compact qualitative example, the figure below shows a LinearCapR profile
-on yeast phenylalanine tRNA (PDB: 1EHZ), together with reference structure
+on an alanine tRNA (tRNA-Ala-TGC-1-5) of sacCer3 yeast from the GtRNAdb/tRNAscan-SE, together with reference structure
 labels derived from the same sequence. This is the same type of
 profile-to-structure correspondence used in the major-revision manuscript to
 help interpret what the six context probabilities represent in practice.
