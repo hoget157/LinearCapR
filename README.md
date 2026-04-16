@@ -91,7 +91,7 @@ labels derived from the same sequence. This is the same type of
 profile-to-structure correspondence used in the major-revision manuscript to
 help interpret what the six context probabilities represent in practice.
 
-![LinearCapR profile on yeast tRNA](LinearCapR_upstream_work/docs/fig5.png)
+![LinearCapR profile on yeast tRNA](docs/fig5.png)
 
 ## Build
 
