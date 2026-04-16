@@ -165,6 +165,10 @@ Run the default model:
 ./LinCapR test.fa test.profile 100
 ```
 
+```bash
+./LinCapR tRNA-Ala-TGC-1-5.fa tRNA-Ala-TGC-1-5.profile 100
+```
+
 Run Turner 1999:
 
 ```bash
