@@ -89,7 +89,9 @@ As a compact qualitative example, the figure below shows a LinearCapR profile
 on an alanine tRNA (tRNA-Ala-TGC-1-5) of sacCer3 yeast from the GtRNAdb/tRNAscan-SE, together with reference structure
 labels derived from the same sequence. This is the same type of
 profile-to-structure correspondence used in the major-revision manuscript to
-help interpret what the six context probabilities represent in practice.
+help interpret what the six context probabilities represent in practice. This
+repository figure is also related to the representative small-RNA example used
+in the manuscript.
 
 ![LinearCapR profile on yeast tRNA](docs/fig5.png)
 
