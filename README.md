@@ -231,18 +231,20 @@ and Supplementary Information.
 If you use LinearCapR in published work, please cite:
 
 ```bibtex
-@ARTICLE{Otagaki2025-cu,
-  title       = "{LinearCapR}: Linear-time computation of per-nucleotide
-                 structural-context probabilities of {RNA} without base-pair
-                 span limits",
-  author      = "Otagaki, Takumi and Hosokawa, Hiroaki and Fukunaga, Tsukasa and
-                 Iwakiri, Junichi and Terai, Goro and Asai, Kiyoshi",
-  journal     = "bioRxiv",
-  institution = "bioRxiv",
-  pages       = "2025.12.26.696559",
-  month       = dec,
-  year        = 2025,
-  language    = "en"
+@ARTICLE{Otagaki2026-ev,
+  title     = "{LinearCapR}: linear-time computation of per-nucleotide
+               structural-context probabilities of {RNA} without base-pair span
+               limits",
+  author    = "Otagaki, Takumi and Hosokawa, Hiroaki and Fukunaga, Tsukasa and
+               Iwakiri, Junichi and Terai, Goro and Asai, Kiyoshi",
+  journal   = "Bioinformatics",
+  publisher = "Oxford University Press (OUP)",
+  volume    =  42,
+  number    =  6,
+  pages     = "btag295",
+  month     =  jun,
+  year      =  2026,
+  language  = "en"
 }
 ```
 
